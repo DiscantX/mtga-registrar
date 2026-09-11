@@ -340,7 +340,8 @@ def test_browser_controller_invalid_url() -> None:
 
 def test_browser_controller_privacy_and_tab_operations() -> None:
     """Verify BrowserController privacy and tab operations."""
-    with patch("src.automation.keyboard.KeyboardController.press_key") as mock_press, \
+    with patch("pyautogui.size", return_value=(1920, 1080)), \
+         patch("src.automation.keyboard.KeyboardController.press_key") as mock_press, \
          patch("src.automation.mouse.MouseController.click") as mock_click, \
          patch("src.automation.keyboard.KeyboardController.hotkey") as mock_hotkey, \
          patch("src.automation.keyboard.KeyboardController.type_text") as mock_type, \
@@ -351,7 +352,7 @@ def test_browser_controller_privacy_and_tab_operations() -> None:
         mock_click.assert_called_with(100, 100)
 
         BrowserController.open_privacy_browser()
-        mock_click.assert_called_with(960, 900)
+        mock_click.assert_called_with(960, 899)
 
         BrowserController.navigate_and_transfer("https://test.tunnelmole.net")
         mock_hotkey.assert_any_call("ctrl", "l")

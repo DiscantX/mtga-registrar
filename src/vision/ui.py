@@ -11,7 +11,9 @@ import numpy as np
 
 from src.core.config import settings
 from src.core.exceptions import VisionError
+from src.core.ui_locations import get_location
 from src.vision.detector import TemplateDetector
+from src.vision.templates import TemplateLibrary
 
 logger = logging.getLogger("mtga_registrar.vision.ui")
 
@@ -53,9 +55,9 @@ class UIDetector:
             )
             h, w = image.shape[:2]
             if direction == "right":
-                return (int(w * 0.85), int(h * 0.85), 60, 60)
+                return get_location("pagination_nav_right", w, h)
             else:
-                return (int(w * 0.10), int(h * 0.85), 60, 60)
+                return get_location("pagination_nav_left", w, h)
 
         except Exception as e:
             logger.error(
@@ -84,6 +86,7 @@ class UIDetector:
         """
         thresh = threshold or settings.confidence_threshold
         try:
+            template = template or TemplateLibrary.load("btn_export.png")
             if template is not None:
                 matches = TemplateDetector.match_template(
                     image, template, threshold=thresh
@@ -94,7 +97,7 @@ class UIDetector:
 
             logger.debug("No template for export button, using heuristic")
             h, w = image.shape[:2]
-            return (int(w * 0.25), int(h * 0.90), 120, 40)
+            return get_location("export_deck_button", w, h)
 
         except Exception as e:
             logger.error("Failed to find export button: %s", e, exc_info=True)
@@ -120,6 +123,7 @@ class UIDetector:
         """
         thresh = threshold or settings.confidence_threshold
         try:
+            template = template or TemplateLibrary.load("btn_create_deck.png")
             if template is not None:
                 matches = TemplateDetector.match_template(
                     image, template, threshold=thresh
@@ -130,7 +134,7 @@ class UIDetector:
 
             logger.debug("No template for deck creation button, heuristic")
             h, w = image.shape[:2]
-            return (int(w * 0.15), int(h * 0.15), 140, 50)
+            return get_location("create_deck_button", w, h)
 
         except Exception as e:
             logger.error(
@@ -172,7 +176,7 @@ class UIDetector:
                 "No template for format '%s', using heuristic", format_name
             )
             h, w = image.shape[:2]
-            return (int(w * 0.50), int(h * 0.30), 160, 45)
+            return get_location("format_selector_dropdown", w, h)
 
         except Exception as e:
             logger.error(
@@ -201,6 +205,7 @@ class UIDetector:
         """
         thresh = threshold or settings.confidence_threshold
         try:
+            template = template or TemplateLibrary.load("input_search_bar.png")
             if template is not None:
                 matches = TemplateDetector.match_template(
                     image, template, threshold=thresh
@@ -211,7 +216,7 @@ class UIDetector:
 
             logger.debug("No template for decks search bar, using heuristic")
             h, w = image.shape[:2]
-            return (int(w * 0.70), int(h * 0.12), 200, 40)
+            return get_location("decks_search_bar", w, h)
 
         except Exception as e:
             logger.error("Failed to find decks search bar: %s", e, exc_info=True)
@@ -247,7 +252,7 @@ class UIDetector:
 
             logger.debug("No template for leftmost deck, using heuristic")
             h, w = image.shape[:2]
-            return (int(w * 0.15), int(h * 0.30), 180, 220)
+            return get_location("leftmost_deck_slot", w, h)
 
         except Exception as e:
             logger.error("Failed to find leftmost deck: %s", e, exc_info=True)
@@ -273,6 +278,7 @@ class UIDetector:
         """
         thresh = threshold or settings.confidence_threshold
         try:
+            template = template or TemplateLibrary.load("btn_trash.png")
             if template is not None:
                 matches = TemplateDetector.match_template(
                     image, template, threshold=thresh
@@ -283,7 +289,7 @@ class UIDetector:
 
             logger.debug("No template for trash can button, using heuristic")
             h, w = image.shape[:2]
-            return (int(w * 0.85), int(h * 0.15), 50, 50)
+            return get_location("trash_can_button", w, h)
 
         except Exception as e:
             logger.error("Failed to find trash can button: %s", e, exc_info=True)
@@ -309,6 +315,7 @@ class UIDetector:
         """
         thresh = threshold or settings.confidence_threshold
         try:
+            template = template or TemplateLibrary.load("btn_confirm_ok.png")
             if template is not None:
                 matches = TemplateDetector.match_template(
                     image, template, threshold=thresh
@@ -319,7 +326,7 @@ class UIDetector:
 
             logger.debug("No template for confirmation OK button, using heuristic")
             h, w = image.shape[:2]
-            return (int(w * 0.55), int(h * 0.60), 120, 45)
+            return get_location("confirmation_ok_button", w, h)
 
         except Exception as e:
             logger.error("Failed to find confirmation OK button: %s", e, exc_info=True)
@@ -345,6 +352,7 @@ class UIDetector:
         """
         thresh = threshold or settings.confidence_threshold
         try:
+            template = template or TemplateLibrary.load("link_privacy_choices.png")
             if template is not None:
                 matches = TemplateDetector.match_template(
                     image, template, threshold=thresh
@@ -355,7 +363,7 @@ class UIDetector:
 
             logger.debug("No template for privacy choices link, using heuristic")
             h, w = image.shape[:2]
-            return (int(w * 0.50), int(h * 0.85), 220, 40)
+            return get_location("privacy_choices_link", w, h)
 
         except Exception as e:
             logger.error("Failed to find privacy choices link: %s", e, exc_info=True)

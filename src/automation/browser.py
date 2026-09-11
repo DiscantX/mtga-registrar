@@ -12,6 +12,7 @@ from src.automation.keyboard import KeyboardController
 from src.automation.mouse import MouseController
 from src.automation.timing import sleep_random
 from src.core.exceptions import AutomationError
+from src.core.ui_locations import get_click_point
 
 logger = logging.getLogger("mtga_registrar")
 
@@ -35,6 +36,7 @@ class BrowserController:
             AutomationError: If browser navigation fails.
         """
         try:
+            logger.info("[SEQ:navigate] Ctrl+L -> type tunnel URL -> Enter.")
             if not isinstance(url, str) or not url.startswith("http"):
                 raise AutomationError(f"Invalid URL provided for navigation: '{url}'")
 
@@ -110,6 +112,7 @@ class BrowserController:
             AutomationError: If opening privacy browser fails.
         """
         try:
+            logger.info("[SEQ:privacy_browser] ESC -> click 'Your Privacy Choices' to open Edge.")
             logger.info("Opening privacy browser via ESC menu...")
             KeyboardController.press_key("esc")
             sleep_random(0.3, 0.05, 0.1, 0.5)
@@ -120,7 +123,7 @@ class BrowserController:
             else:
                 # Default fallback or click center-ish where
                 # privacy choices link typically appears
-                MouseController.click(960, 900)
+                MouseController.click(*get_click_point("fallback_privacy_choices_click"))
 
             sleep_random(1.0, 0.2, 0.5, 2.0)
             logger.debug("Successfully opened privacy browser.")
@@ -154,6 +157,7 @@ class BrowserController:
             AutomationError: If closing tab fails.
         """
         try:
+            logger.info("[SEQ:close_tab] Ctrl+W to close browser tab.")
             logger.info("Closing current browser tab via Ctrl+W...")
             KeyboardController.hotkey("ctrl", "w")
             sleep_random(0.5, 0.1, 0.2, 0.8)

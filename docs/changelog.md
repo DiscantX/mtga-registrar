@@ -2,6 +2,14 @@
 
 All notable changes to [`MTGA Registrar`](.) will be documented in this file.
 
+## [0.5.0] - 2026-09-11
+
+### Added
+- **Centralized UI Element Locations (`src/core/ui_locations.py`)**: Moved all scattered UI coordinates and fabricated heuristics into a centralized registry with `calibrated` flags, refactoring `src/vision/ui.py`, `src/core/app.py`, and `src/automation/browser.py`.
+- **Template Loading Infrastructure (`src/vision/templates.py`, `templates/`)**: Implemented template loading and caching infrastructure (`TemplateLibrary`) supporting graceful fallback to heuristic detection when calibrated template PNGs are absent.
+- **Sequence Logging (`[SEQ:...]`)**: Added explicit step tagging (`[SEQ:...`) across core application and browser automation workflows to enable execution flow verification via logs.
+- **Emergency Stop Hotkey (`src/automation/emergency_stop.py`)**: Added global thread-safe emergency stop mechanism (`ctrl+alt+q`) with checkpoint checks throughout scanning and export loops, along with dedicated unit tests.
+
 ## [0.4.0] - 2026-09-11
 
 ### Added

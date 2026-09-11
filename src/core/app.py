@@ -9,6 +9,7 @@ import logging
 from typing import Any, Callable, Dict, List, Optional
 
 from src.automation.browser import BrowserController
+from src.automation.emergency_stop import EmergencyStop
 from src.automation.keyboard import KeyboardController
 from src.automation.mouse import MouseController
 from src.automation.timing import sleep_random
@@ -17,6 +18,7 @@ from src.core.config import Settings, settings, setup_logging
 from src.core.exceptions import MTGARegistrarError
 from src.core.pagination import PaginationManager
 from src.core.state import CardEntry, CollectionState
+from src.core.ui_locations import get_click_point
 from src.export.base import ClipboardTransferProvider, ExportTransferProvider
 from src.export.parser import DeckParser
 from src.vision.capture import ScreenCapture
@@ -75,6 +77,7 @@ class ApplicationController:
         """
         logger.info("Creating new deck in 'Timeless' format...")
         try:
+            logger.info("[SEQ:create_deck] Clicking '+' Create Deck button, no format selected.")
             if nav_callback is not None:
                 success = nav_callback()
                 if not success:
@@ -105,6 +108,7 @@ class ApplicationController:
         Returns:
             List of discovered CardEntry objects on the current page.
         """
+        logger.info("[SEQ:scan_page] Calculating grid, counting diamonds/infinity, clicking cards.")
         current_page = self.pagination.current_page
         logger.info(f"Scanning collection page {current_page}...")
 
@@ -115,12 +119,14 @@ class ApplicationController:
             image = ScreenCapture.capture_screen()
             grid_boxes = TemplateDetector.calculate_card_grid(image.shape)
             for idx, (bx, by, bw, bh) in enumerate(grid_boxes):
+                EmergencyStop.check()
                 slot_img = image[by:by+bh, bx:bx+bw]
                 qty = TemplateDetector.evaluate_card_ownership(slot_img)
                 if qty > 0:
                     center_x = bx + bw // 2
                     center_y = by + bh // 2
                     for _ in range(qty):
+                        EmergencyStop.check()
                         MouseController.click(center_x, center_y)
                         sleep_random(0.05, 0.01, 0.02, 0.1)
 
@@ -178,11 +184,13 @@ class ApplicationController:
             self.pagination.max_pages = max_pages
 
         try:
+            EmergencyStop.reset()
             self.initialize()
             self.create_deck()
 
             end_of_collection = False
             while not end_of_collection:
+                EmergencyStop.check()
                 cards_on_page = self.scan_page(page_scanner)
                 new_cards_count = len(cards_on_page)
 
@@ -211,6 +219,7 @@ class ApplicationController:
             )
 
             for batch in batches:
+                EmergencyStop.check()
                 batch_id = batch["batch_id"]
                 batch_cards = batch["cards"]
 
@@ -271,7 +280,10 @@ class ApplicationController:
         """Save the current deck, dismissing any 'Too Many Cards' warning popup if present."""
         logger.info("Saving current deck...")
         try:
-            MouseController.click(1850, 50)
+            logger.info(
+                "[SEQ:save_deck] Saving deck and dismissing 'Too Many Cards' popup if present."
+            )
+            MouseController.click(*get_click_point("save_deck_button_click"))
             sleep_random(0.5, 0.1, 0.2, 0.8)
 
             image = ScreenCapture.capture_screen()
@@ -289,6 +301,10 @@ class ApplicationController:
         """Search 'New Deck', select leftmost deck, export deck, delete deck, and confirm OK."""
         logger.info("Executing deck export and cleanup workflow...")
         try:
+            logger.info(
+                "[SEQ:export_cleanup] Search 'New Deck' -> select leftmost "
+                "-> export -> delete -> confirm."
+            )
             image = ScreenCapture.capture_screen()
 
             search_bar = UIDetector.find_decks_search_bar(image)
@@ -296,7 +312,7 @@ class ApplicationController:
                 x, y, w, h = search_bar
                 MouseController.click(x + w // 2, y + h // 2)
             else:
-                MouseController.click(1400, 130)
+                MouseController.click(*get_click_point("fallback_search_bar_click"))
             sleep_random(0.2, 0.05, 0.1, 0.3)
 
             KeyboardController.hotkey("ctrl", "a")
@@ -311,7 +327,7 @@ class ApplicationController:
                 x, y, w, h = left_deck
                 MouseController.click(x + w // 2, y + h // 2)
             else:
-                MouseController.click(300, 300)
+                MouseController.click(*get_click_point("fallback_leftmost_deck_click"))
             sleep_random(0.8, 0.1, 0.3, 1.0)
 
             image = ScreenCapture.capture_screen()
@@ -321,7 +337,7 @@ class ApplicationController:
                 x, y, w, h = export_btn
                 MouseController.click(x + w // 2, y + h // 2)
             else:
-                MouseController.click(500, 950)
+                MouseController.click(*get_click_point("fallback_export_button_click"))
             sleep_random(0.8, 0.1, 0.3, 1.0)
 
             image = ScreenCapture.capture_screen()
@@ -331,7 +347,7 @@ class ApplicationController:
                 x, y, w, h = trash_btn
                 MouseController.click(x + w // 2, y + h // 2)
             else:
-                MouseController.click(1650, 150)
+                MouseController.click(*get_click_point("fallback_trash_can_click"))
             sleep_random(0.5, 0.1, 0.2, 0.8)
 
             image = ScreenCapture.capture_screen()
@@ -341,7 +357,7 @@ class ApplicationController:
                 x, y, w, h = ok_btn
                 MouseController.click(x + w // 2, y + h // 2)
             else:
-                MouseController.click(1050, 650)
+                MouseController.click(*get_click_point("fallback_confirm_ok_click"))
             sleep_random(0.8, 0.1, 0.3, 1.0)
 
             logger.info("Successfully completed deck export and cleanup workflow.")

@@ -38,8 +38,50 @@ class MockTransferProvider(ClipboardTransferProvider):
         return "https://mock.tunnelmole.net"
 
 
-def test_end_to_end_workflow_success() -> None:
+def test_end_to_end_workflow_success(monkeypatch: pytest.MonkeyPatch) -> None:
     """Verify successful end-to-end collection export workflow across multiple pages."""
+    monkeypatch.setattr(
+        "src.vision.capture.ScreenCapture.capture_screen", lambda: None
+    )
+    monkeypatch.setattr(
+        "src.automation.mouse.MouseController.click", lambda x, y: None
+    )
+    monkeypatch.setattr(
+        "src.automation.mouse.MouseController.scroll_down", lambda clicks=1: None
+    )
+    monkeypatch.setattr(
+        "src.automation.keyboard.KeyboardController.hotkey",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "src.automation.keyboard.KeyboardController.type_text",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "src.automation.keyboard.KeyboardController.press_key",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_confirmation_ok_button",
+        lambda img: (0, 0, 10, 10),
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_decks_search_bar",
+        lambda img: (0, 0, 10, 10),
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_leftmost_deck",
+        lambda img: (0, 0, 10, 10),
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_export_button",
+        lambda img: (0, 0, 10, 10),
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_trash_can_button",
+        lambda img: (0, 0, 10, 10),
+    )
+
     transfer_provider = MockTransferProvider()
     settings = Settings(max_batch_size=10, log_level="DEBUG")
     controller = ApplicationController(
@@ -120,8 +162,50 @@ def test_deck_creation_failure() -> None:
         controller.create_deck(nav_callback=bad_nav)
 
 
-def test_large_collection_batching() -> None:
+def test_large_collection_batching(monkeypatch: pytest.MonkeyPatch) -> None:
     """Verify batching and export of a large collection (> max_batch_size)."""
+    monkeypatch.setattr(
+        "src.vision.capture.ScreenCapture.capture_screen", lambda: None
+    )
+    monkeypatch.setattr(
+        "src.automation.mouse.MouseController.click", lambda x, y: None
+    )
+    monkeypatch.setattr(
+        "src.automation.mouse.MouseController.scroll_down", lambda clicks=1: None
+    )
+    monkeypatch.setattr(
+        "src.automation.keyboard.KeyboardController.hotkey",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "src.automation.keyboard.KeyboardController.type_text",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "src.automation.keyboard.KeyboardController.press_key",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_confirmation_ok_button",
+        lambda img: (0, 0, 10, 10),
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_decks_search_bar",
+        lambda img: (0, 0, 10, 10),
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_leftmost_deck",
+        lambda img: (0, 0, 10, 10),
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_export_button",
+        lambda img: (0, 0, 10, 10),
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_trash_can_button",
+        lambda img: (0, 0, 10, 10),
+    )
+
     transfer_provider = MockTransferProvider()
     settings = Settings(max_batch_size=50)
     controller = ApplicationController(

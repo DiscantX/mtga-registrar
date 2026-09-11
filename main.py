@@ -9,6 +9,7 @@ import logging
 import sys
 from typing import Optional
 
+from src.automation.emergency_stop import EmergencyStop
 from src.core.app import ApplicationController
 from src.core.config import Settings, setup_logging
 from src.core.exceptions import MTGARegistrarError
@@ -86,6 +87,7 @@ def main() -> int:
     setup_logging(settings.log_level)
 
     logger.info("Starting MTGA Registrar CLI...")
+    EmergencyStop.start_hotkey_listener()
     logger.info(
         "Configuration: dry_run=%s, log_level=%s, max_batch_size=%d, transfer_mode=%s",
         args.dry_run,
