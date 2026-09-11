@@ -2,6 +2,14 @@
 
 All notable changes to [`MTGA Registrar`](.) will be documented in this file.
 
+## [0.3.0] - 2026-09-11
+
+### Added
+- **Application Controller (`src/core/app.py`)**: Implemented the main application controller orchestrating vision, automation, state management, pagination, batching, and export transfer handlers into a cohesive collection export workflow.
+- **CLI Entry Point (`main.py`)**: Implemented command-line argument parsing supporting dry-run mode, log level configuration, max batch size, and transfer mode selection (`clipboard`, `server`, `tunnelmole`).
+- **Integration Tests (`tests/test_integration.py`)**: Implemented comprehensive integration tests verifying end-to-end collection export workflows, dry-run mode, deck creation failure handling, and large collection batching (>250 cards).
+- **Documentation Updates**: Updated [`docs/changelog.md`](docs/changelog.md) and [`docs/architecture.md`](docs/architecture.md).
+
 ## [0.2.0] - 2026-09-11
 
 ### Added
