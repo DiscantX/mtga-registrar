@@ -25,3 +25,11 @@ This document records key architectural decisions made for [`MTGA Registrar`](.)
 - **Context:** MTGA decks have a hard limit of 250 cards per deck when exporting via clipboard.
 - **Decision:** Chunk card collection collection into batches of up to 250 cards per deck, repeating the creation and export cycle until the entire collection is grabbed.
 - **Consequences:** Reliable export mechanism compatible with MTGA limits without memory access.
+
+## ADR 4: Pluggable Tunnelmole & Local Web Server Transfer for GeForce Now Sandboxing
+
+- **Status:** Accepted
+- **Date:** 2026-09-11
+- **Context:** Nvidia GeForce Now sandbox restricts direct system clipboard access and file transfer from the cloud instance to the user's host environment. However, triggering HTTP links inside the game spawns a fully functional Edge browser with address bar access.
+- **Decision:** Implement a pluggable export transfer architecture (`src/export/`) supporting a local Python web server coupled with Tunnelmole (`tmole`) to securely tunnel payloads, alongside native clipboard handling. The in-game Edge browser navigates to the temporary `https://*.tunnelmole.net` address to transmit exported deck data back to the application.
+- **Consequences:** Enables reliable export of collection data from sandboxed GeForce Now environments without requiring memory inspection, while maintaining clean separation of concerns and allowing future transfer mechanisms (such as Pastebin) to be swapped in easily.
