@@ -54,11 +54,11 @@ class EmergencyStop:
             raise EmergencyStopTriggered("Emergency stop was triggered by the user.")
 
     @classmethod
-    def start_hotkey_listener(cls, hotkey: str = "ctrl+alt+q") -> None:
+    def start_hotkey_listener(cls, hotkey: str = "ctrl+q") -> None:
         """Start a background listener that triggers the emergency stop on hotkey press.
 
         Args:
-            hotkey: Key combination string (default: 'ctrl+alt+q').
+            hotkey: Key combination string (default: 'ctrl+q').
         """
         try:
             import keyboard  # type: ignore[import-untyped]

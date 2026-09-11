@@ -9,9 +9,10 @@ import logging
 from src.core.exceptions import AutomationError
 
 logger = logging.getLogger("mtga_registrar.automation.window_guard")
+window_title_substring = "Magic The Gathering: Arena"
 
 
-def try_focus_mtga_window(title_hint: str = "Magic: The Gathering Arena") -> bool:
+def try_focus_mtga_window(title_hint: str = window_title_substring) -> bool:
     """Attempt to find and focus the MTGA window.
 
     Args:
@@ -45,7 +46,7 @@ def try_focus_mtga_window(title_hint: str = "Magic: The Gathering Arena") -> boo
         return False
 
 
-def ensure_mtga_focused(title_hint: str = "Magic: The Gathering Arena") -> None:
+def ensure_mtga_focused(title_hint: str = window_title_substring) -> None:
     """Ensure the MTGA window is focused, raising AutomationError if focus fails.
 
     Args:
