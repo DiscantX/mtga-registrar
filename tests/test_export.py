@@ -1,7 +1,9 @@
-"""Comprehensive unit tests for export transfer providers and browser navigation.
+"""Comprehensive unit tests for export transfer providers, clipboard utility,
 
-Verifies ClipboardTransferProvider, LocalHTTPServerProvider, TunnelmoleTransferProvider
-(with subprocess mocking), payload acceptance, server endpoints, and BrowserController.
+deck parser, and browser navigation.
+Verifies ClipboardTransferProvider, ClipboardUtility, DeckParser, LocalHTTPServerProvider,
+TunnelmoleTransferProvider (with subprocess mocking), payload acceptance, server endpoints,
+and BrowserController.
 """
 
 import socket
@@ -14,6 +16,8 @@ import pytest
 from src.automation.browser import BrowserController
 from src.core.exceptions import AutomationError, ExportError
 from src.export.base import ClipboardTransferProvider, ExportTransferProvider
+from src.export.clipboard import ClipboardUtility
+from src.export.parser import DeckParser
 from src.export.server import LocalHTTPServerProvider
 from src.export.tunnelmole import TunnelmoleTransferProvider
 
@@ -53,6 +57,113 @@ def test_clipboard_transfer_provider() -> None:
         assert "System clipboard paste failed" in str(exc_info.value)
 
     provider.stop()
+
+
+def test_clipboard_utility_methods() -> None:
+    """Verify ClipboardUtility copy, paste, clear, and error handling."""
+    with patch("pyperclip.copy") as mock_copy, \
+         patch("pyperclip.paste", return_value="Test Text"):
+        assert ClipboardUtility.copy("Hello MTGA") is True
+        mock_copy.assert_called_once_with("Hello MTGA")
+
+        assert ClipboardUtility.paste() == "Test Text"
+
+        assert ClipboardUtility.clear() is True
+        mock_copy.assert_called_with("")
+
+    # Test copy invalid input error
+    with pytest.raises(ExportError):
+        ClipboardUtility.copy(123)  # type: ignore
+
+    # Test copy exception wrapping
+    with patch("pyperclip.copy", side_effect=Exception("Copy failed")):
+        with pytest.raises(ExportError) as exc_info:
+            ClipboardUtility.copy("Fail")
+        assert "System clipboard copy operation failed" in str(exc_info.value)
+
+    # Test paste exception wrapping
+    with patch("pyperclip.paste", side_effect=Exception("Paste failed")):
+        with pytest.raises(ExportError) as exc_info:
+            ClipboardUtility.paste()
+        assert "System clipboard paste operation failed" in str(exc_info.value)
+
+    # Test clear exception wrapping
+    with patch("pyperclip.copy", side_effect=Exception("Clear failed")):
+        with pytest.raises(ExportError) as exc_info:
+            ClipboardUtility.clear()
+        assert "System clipboard clear operation failed" in str(exc_info.value)
+
+
+def test_clipboard_utility_wait_for_clipboard() -> None:
+    """Verify ClipboardUtility.wait_for_clipboard success and timeout."""
+    # Success when content changes
+    with patch(
+        "pyperclip.paste",
+        side_effect=["Initial", "Initial", "New Export Deck"],
+    ):
+        content = ClipboardUtility.wait_for_clipboard(
+            timeout=1.0,
+            poll_interval=0.05,
+            initial_content="Initial",
+        )
+        assert content == "New Export Deck"
+
+    # Timeout when content does not change
+    with patch("pyperclip.paste", return_value="Stale Content"):
+        content = ClipboardUtility.wait_for_clipboard(
+            timeout=0.2,
+            poll_interval=0.05,
+            initial_content="Stale Content",
+        )
+        assert content is None
+
+
+def test_deck_parser() -> None:
+    """Verify DeckParser correctly parses raw MTGA export text into structured models."""
+    sample_text = """
+    Deck
+    2 Llanowar Elves (FDN) 227
+    6 Forest (FIN) 306
+    Sideboard
+    1 Ugin, Eye of the Storms (TDM) 1
+    """
+
+    deck = DeckParser.parse(sample_text)
+    assert len(deck.cards) == 3
+
+    # Verify card 1
+    c1 = deck.cards[0]
+    assert c1.quantity == 2
+    assert c1.name == "Llanowar Elves"
+    assert c1.set_code == "FDN"
+    assert c1.collector_number == "227"
+    assert c1.category == "mainboard"
+
+    # Verify card 3 (sideboard)
+    c3 = deck.cards[2]
+    assert c3.quantity == 1
+    assert c3.name == "Ugin, Eye of the Storms"
+    assert c3.set_code == "TDM"
+    assert c3.collector_number == "1"
+    assert c3.category == "sideboard"
+
+    # Verify model serialization
+    d_dict = deck.to_dict()
+    assert d_dict["total_cards"] == 9
+    assert d_dict["unique_cards"] == 3
+
+    d_json = deck.to_json()
+    assert "Llanowar Elves" in d_json
+    assert "TDM" in d_json
+
+
+def test_deck_parser_invalid() -> None:
+    """Verify DeckParser handling of invalid inputs."""
+    with pytest.raises(ExportError):
+        DeckParser.parse(123)  # type: ignore
+
+    empty_deck = DeckParser.parse("")
+    assert len(empty_deck.cards) == 0
 
 
 def test_local_http_server_provider() -> None:
