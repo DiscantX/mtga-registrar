@@ -34,6 +34,9 @@ class MockTransferProvider(ClipboardTransferProvider):
         self.transferred_data.append(data)
         return True
 
+    def get_url(self) -> str:
+        return "https://mock.tunnelmole.net"
+
 
 def test_end_to_end_workflow_success() -> None:
     """Verify successful end-to-end collection export workflow across multiple pages."""
@@ -158,3 +161,53 @@ def test_large_collection_batching() -> None:
     assert batches[1]["size"] == 50
     assert batches[2]["size"] == 20
     assert len(transfer_provider.transferred_data) == 3
+
+
+def test_deck_save_and_cleanup_orchestration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify deck save and cleanup execution steps with mocked automation/vision."""
+    controller = ApplicationController()
+
+    monkeypatch.setattr(
+        "src.vision.capture.ScreenCapture.capture_screen", lambda: None
+    )
+    monkeypatch.setattr(
+        "src.automation.mouse.MouseController.click", lambda x, y: None
+    )
+    monkeypatch.setattr(
+        "src.automation.keyboard.KeyboardController.hotkey",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "src.automation.keyboard.KeyboardController.type_text",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "src.automation.keyboard.KeyboardController.press_key",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_confirmation_ok_button",
+        lambda img: (0, 0, 10, 10),
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_decks_search_bar",
+        lambda img: (0, 0, 10, 10),
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_leftmost_deck",
+        lambda img: (0, 0, 10, 10),
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_export_button",
+        lambda img: (0, 0, 10, 10),
+    )
+    monkeypatch.setattr(
+        "src.vision.ui.UIDetector.find_trash_can_button",
+        lambda img: (0, 0, 10, 10),
+    )
+
+    controller.save_current_deck()
+    controller.export_and_cleanup_deck()
+

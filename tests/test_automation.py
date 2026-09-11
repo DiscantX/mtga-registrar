@@ -89,6 +89,15 @@ def test_mouse_controller_drag() -> None:
         mock_up.assert_called_once()
 
 
+def test_mouse_controller_scroll_down() -> None:
+    """Verify MouseController.scroll_down executes scroll action correctly."""
+    with patch("pyautogui.scroll") as mock_scroll, \
+         patch("time.sleep", return_value=None):
+
+        MouseController.scroll_down(clicks=3)
+        mock_scroll.assert_called_once_with(-3)
+
+
 def test_mouse_controller_error() -> None:
     """Verify MouseController raises AutomationError on failure."""
     with patch("pyautogui.position", side_effect=Exception("Lost cursor")):

@@ -180,3 +180,183 @@ class TemplateDetector:
             raise VisionError(
                 f"Diamond detection failed: {e}", details=str(e)
             ) from e
+
+    @staticmethod
+    def calculate_card_grid(
+        image_shape: Tuple[int, ...],
+        zoom_level: int = 2,
+    ) -> List[Tuple[int, int, int, int]]:
+        """Calculate aspect-ratio-aware card slot bounding boxes for List View.
+
+        Supports 16:9 (1920x1080) and 16:10 (1920x1200) aspect ratios.
+        - 16:9 (ar ≈ 1.778):
+          - zoom_level == 2 (standard): 2 rows × 5 columns = 10 slots.
+          - zoom_level == 3 (zoomed out): 3 rows × 7 columns = 21 slots.
+        - 16:10 (ar ≈ 1.6):
+          - zoom_level == 2 (standard): 2 rows × 4 columns = 8 slots.
+          - zoom_level == 3 (zoomed out): 3 rows × 6 columns = 18 slots.
+
+        Args:
+            image_shape: (height, width) tuple of the screen or viewport image.
+            zoom_level: Collection view zoom level (default 2).
+
+        Returns:
+            List of (x, y, width, height) bounding boxes for each card slot.
+
+        Raises:
+            VisionError: If image shape is invalid.
+        """
+        try:
+            if (
+                not image_shape
+                or len(image_shape) < 2
+                or image_shape[0] <= 0
+                or image_shape[1] <= 0
+            ):
+                raise VisionError(
+                    "Invalid image shape provided for grid calculation."
+                )
+
+            h, w = image_shape[:2]
+            aspect_ratio = float(w) / float(h)
+
+            # Determine grid dimensions based on aspect ratio and zoom level
+            if aspect_ratio >= 1.7:
+                # 16:9 aspect ratio
+                if zoom_level == 3:
+                    rows, cols = 3, 7
+                else:
+                    rows, cols = 2, 5
+            else:
+                # 16:10 aspect ratio
+                if zoom_level == 3:
+                    rows, cols = 3, 6
+                else:
+                    rows, cols = 2, 4
+
+            # Define percentage-based collection viewable area margins
+            left_margin = int(w * 0.08)
+            right_margin = int(w * 0.08)
+            top_margin = int(h * 0.22)
+            bottom_margin = int(h * 0.15)
+
+            available_width = w - left_margin - right_margin
+            available_height = h - top_margin - bottom_margin
+
+            if available_width <= 0 or available_height <= 0:
+                raise VisionError("Calculated available grid area is non-positive.")
+
+            col_width = available_width / cols
+            row_height = available_height / rows
+
+            grid_boxes: List[Tuple[int, int, int, int]] = []
+            for r in range(rows):
+                for c in range(cols):
+                    slot_x = left_margin + int(c * col_width)
+                    slot_y = top_margin + int(r * row_height)
+                    slot_w = int(col_width)
+                    slot_h = int(row_height)
+                    grid_boxes.append((slot_x, slot_y, slot_w, slot_h))
+
+            logger.debug(
+                "Calculated %d card slots for ar=%.3f (zoom=%d): %dx%d grid",
+                len(grid_boxes), aspect_ratio, zoom_level, rows, cols
+            )
+            return grid_boxes
+
+        except Exception as e:
+            if isinstance(e, VisionError):
+                raise e
+            logger.error("Grid geometry calculation failed: %s", e, exc_info=True)
+            raise VisionError(
+                f"Grid calculation error: {e}", details=str(e)
+            ) from e
+
+    @staticmethod
+    def evaluate_card_ownership(card_slot_image: np.ndarray) -> int:
+        """Evaluate card ownership quantity from a card slot image.
+
+        Crops the top header region of the card slot where the 4 diamond indicators
+        and/or infinity symbol reside. Analyzes sub-regions for the 4 diamonds
+        (bright white = 1, dark grey = 0) and checks for an infinity symbol (returns 1).
+
+        Args:
+            card_slot_image: BGR numpy array representing a single card slot.
+
+        Returns:
+            Owned quantity X in range [0, 4].
+
+        Raises:
+            VisionError: If image shape is invalid.
+        """
+        try:
+            if (
+                card_slot_image is None
+                or card_slot_image.size == 0
+                or len(card_slot_image.shape) < 2
+            ):
+                raise VisionError("Invalid card slot image provided for ownership evaluation.")
+
+            h, w = card_slot_image.shape[:2]
+
+            # Crop top header region where ownership indicators (diamonds / infinity) reside
+            header_ymin = int(h * 0.02)
+            header_ymax = int(h * 0.28)
+            header_xmin = int(w * 0.1)
+            header_xmax = int(w * 0.9)
+
+            header_region = card_slot_image[header_ymin:header_ymax, header_xmin:header_xmax]
+            if header_region.size == 0:
+                return 0
+
+            # Convert to grayscale
+            if len(header_region.shape) == 3:
+                gray = cv2.cvtColor(header_region, cv2.COLOR_BGR2GRAY)
+            else:
+                gray = header_region
+
+            hr_h, hr_w = gray.shape[:2]
+
+            # 1. Check for infinity symbol
+            _, bin_img = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
+            contours, _ = cv2.findContours(bin_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            for cnt in contours:
+                area = cv2.contourArea(cnt)
+                if 20 <= area <= 1000:
+                    _, _, c_w, c_h = cv2.boundingRect(cnt)
+                    aspect_ratio = float(c_w) / c_h if c_h > 0 else 0
+                    if 1.2 <= aspect_ratio <= 3.0 and hr_w * 0.2 <= c_w <= hr_w * 0.9:
+                        logger.debug("Detected infinity symbol contour, returning quantity 1.")
+                        return 1
+
+            # 2. Evaluate 4 diamond indicators horizontally spaced across the header region
+            segment_width = hr_w / 4.0
+            total_diamonds = 0
+
+            for i in range(4):
+                seg_x1 = int(i * segment_width)
+                seg_x2 = int((i + 1) * segment_width)
+                diamond_seg = gray[:, seg_x1:seg_x2]
+
+                if diamond_seg.size == 0:
+                    continue
+
+                bright_pixels = np.sum(diamond_seg > 200)
+                total_pixels = diamond_seg.size
+                bright_ratio = float(bright_pixels) / total_pixels
+
+                if bright_ratio >= 0.05:
+                    total_diamonds += 1
+
+            quantity = min(max(total_diamonds, 0), 4)
+            logger.debug("Evaluated card ownership quantity: %d", quantity)
+            return quantity
+
+        except Exception as e:
+            if isinstance(e, VisionError):
+                raise e
+            logger.error("Card ownership evaluation failed: %s", e, exc_info=True)
+            raise VisionError(
+                f"Card ownership evaluation error: {e}", details=str(e)
+            ) from e

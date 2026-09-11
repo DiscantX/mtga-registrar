@@ -49,6 +49,14 @@ class ExportTransferProvider(ABC):
         """Stop or clean up the transfer provider."""
         pass
 
+    def get_url(self) -> str:
+        """Get transfer URL if applicable.
+
+        Returns:
+            URL string (defaults to local server endpoint).
+        """
+        return "http://127.0.0.1:5000"
+
 
 class ClipboardTransferProvider(ExportTransferProvider):
     """Native system clipboard export provider using pyperclip."""

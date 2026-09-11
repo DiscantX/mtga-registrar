@@ -174,3 +174,22 @@ class MouseController:
                 f"Failed to drag from ({start_x}, {start_y}) to ({end_x}, {end_y})",
                 details=str(e),
             ) from e
+
+    @staticmethod
+    def scroll_down(clicks: int = 3) -> None:
+        """Scroll down by specified number of clicks with human-like timing pauses.
+
+        Args:
+            clicks: Number of scroll notches to scroll down.
+
+        Raises:
+            AutomationError: If scrolling fails.
+        """
+        try:
+            sleep_random(mean=0.05, stddev=0.01, min_delay=0.02, max_delay=0.1)
+            pyautogui.scroll(-abs(clicks))
+            sleep_random(mean=0.15, stddev=0.04, min_delay=0.05, max_delay=0.3)
+        except Exception as e:
+            raise AutomationError(
+                f"Failed to scroll down {clicks} clicks", details=str(e)
+            ) from e

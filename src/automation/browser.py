@@ -98,3 +98,69 @@ class BrowserController:
             if isinstance(e, AutomationError):
                 raise
             raise AutomationError("Failed to open browser or help link", details=str(e)) from e
+
+    @staticmethod
+    def open_privacy_browser(click_coords: Optional[tuple[int, int]] = None) -> None:
+        """Press ESC to open menu, then click 'Your Privacy Choices' to launch browser.
+
+        Args:
+            click_coords: Optional (x, y) coordinates of the 'Your Privacy Choices' link.
+
+        Raises:
+            AutomationError: If opening privacy browser fails.
+        """
+        try:
+            logger.info("Opening privacy browser via ESC menu...")
+            KeyboardController.press_key("esc")
+            sleep_random(0.3, 0.05, 0.1, 0.5)
+
+            if click_coords is not None:
+                x, y = click_coords
+                MouseController.click(x, y)
+            else:
+                # Default fallback or click center-ish where
+                # privacy choices link typically appears
+                MouseController.click(960, 900)
+
+            sleep_random(1.0, 0.2, 0.5, 2.0)
+            logger.debug("Successfully opened privacy browser.")
+        except Exception as e:
+            logger.error(f"Failed to open privacy browser: {e}")
+            if isinstance(e, AutomationError):
+                raise
+            raise AutomationError("Failed to open privacy browser", details=str(e)) from e
+
+    @staticmethod
+    def navigate_and_transfer(
+        url: str,
+        address_bar_coords: Optional[tuple[int, int]] = None,
+    ) -> None:
+        """Navigate address bar to Tunnelmole URL and transmit clipboard payload.
+
+        Args:
+            url: Tunnelmole forwarding URL.
+            address_bar_coords: Optional (x, y) coordinates for address bar.
+
+        Raises:
+            AutomationError: If navigation fails.
+        """
+        BrowserController.navigate_to_url(url, address_bar_coords=address_bar_coords)
+
+    @staticmethod
+    def close_current_tab() -> None:
+        """Send Ctrl+W to close the Edge tab and free Tunnelmole single-connection limit.
+
+        Raises:
+            AutomationError: If closing tab fails.
+        """
+        try:
+            logger.info("Closing current browser tab via Ctrl+W...")
+            KeyboardController.hotkey("ctrl", "w")
+            sleep_random(0.5, 0.1, 0.2, 0.8)
+            logger.debug("Successfully closed browser tab.")
+        except Exception as e:
+            logger.error(f"Failed to close current browser tab: {e}")
+            if isinstance(e, AutomationError):
+                raise
+            raise AutomationError("Failed to close current browser tab", details=str(e)) from e
+

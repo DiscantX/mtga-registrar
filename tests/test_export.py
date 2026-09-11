@@ -14,6 +14,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.automation.browser import BrowserController
+from src.core.app import ApplicationController
 from src.core.exceptions import AutomationError, ExportError
 from src.export.base import ClipboardTransferProvider, ExportTransferProvider
 from src.export.clipboard import ClipboardUtility
@@ -335,3 +336,57 @@ def test_browser_controller_invalid_url() -> None:
     with pytest.raises(AutomationError) as exc_info:
         BrowserController.navigate_to_url("ftp://invalid-url.com")
     assert "Invalid URL provided" in str(exc_info.value)
+
+
+def test_browser_controller_privacy_and_tab_operations() -> None:
+    """Verify BrowserController privacy and tab operations."""
+    with patch("src.automation.keyboard.KeyboardController.press_key") as mock_press, \
+         patch("src.automation.mouse.MouseController.click") as mock_click, \
+         patch("src.automation.keyboard.KeyboardController.hotkey") as mock_hotkey, \
+         patch("src.automation.keyboard.KeyboardController.type_text") as mock_type, \
+         patch("src.automation.timing.sleep_random", return_value=None):
+
+        BrowserController.open_privacy_browser(click_coords=(100, 100))
+        mock_press.assert_any_call("esc")
+        mock_click.assert_called_with(100, 100)
+
+        BrowserController.open_privacy_browser()
+        mock_click.assert_called_with(960, 900)
+
+        BrowserController.navigate_and_transfer("https://test.tunnelmole.net")
+        mock_hotkey.assert_any_call("ctrl", "l")
+        mock_type.assert_called_with("https://test.tunnelmole.net", interval=0.04)
+
+        BrowserController.close_current_tab()
+        mock_hotkey.assert_called_with("ctrl", "w")
+
+
+def test_application_controller_deck_cleanup() -> None:
+    """Verify ApplicationController save_current_deck and export_and_cleanup_deck."""
+    app = ApplicationController()
+    with patch("src.vision.capture.ScreenCapture.capture_screen", return_value=MagicMock()), \
+         patch("src.vision.ui.UIDetector.find_confirmation_ok_button",
+               return_value=(10, 10, 50, 20)), \
+         patch("src.vision.ui.UIDetector.find_decks_search_bar",
+               return_value=(20, 20, 100, 30)), \
+         patch("src.vision.ui.UIDetector.find_leftmost_deck",
+               return_value=(30, 30, 150, 200)), \
+         patch("src.vision.ui.UIDetector.find_export_button",
+               return_value=(40, 40, 100, 40)), \
+         patch("src.vision.ui.UIDetector.find_trash_can_button",
+               return_value=(50, 50, 40, 40)), \
+         patch("src.automation.mouse.MouseController.click") as mock_click, \
+         patch("src.automation.keyboard.KeyboardController.hotkey") as mock_hotkey, \
+         patch("src.automation.keyboard.KeyboardController.type_text") as mock_type, \
+         patch("src.automation.keyboard.KeyboardController.press_key") as mock_press, \
+         patch("src.automation.timing.sleep_random", return_value=None):
+
+        app.save_current_deck()
+        mock_click.assert_called()
+
+        app.export_and_cleanup_deck()
+        mock_hotkey.assert_any_call("ctrl", "a")
+        mock_type.assert_called_with("New Deck", interval=0.04)
+        mock_press.assert_called_with("enter")
+
+

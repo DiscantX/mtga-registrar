@@ -8,6 +8,10 @@ export workflow.
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
+from src.automation.browser import BrowserController
+from src.automation.keyboard import KeyboardController
+from src.automation.mouse import MouseController
+from src.automation.timing import sleep_random
 from src.core.batching import BatchController
 from src.core.config import Settings, settings, setup_logging
 from src.core.exceptions import MTGARegistrarError
@@ -15,6 +19,9 @@ from src.core.pagination import PaginationManager
 from src.core.state import CardEntry, CollectionState
 from src.export.base import ClipboardTransferProvider, ExportTransferProvider
 from src.export.parser import DeckParser
+from src.vision.capture import ScreenCapture
+from src.vision.detector import TemplateDetector
+from src.vision.ui import UIDetector
 
 logger = logging.getLogger("mtga_registrar.core.app")
 
@@ -105,7 +112,27 @@ class ApplicationController:
         if page_scanner is not None:
             discovered = page_scanner(current_page)
         else:
-            pass
+            image = ScreenCapture.capture_screen()
+            grid_boxes = TemplateDetector.calculate_card_grid(image.shape)
+            for idx, (bx, by, bw, bh) in enumerate(grid_boxes):
+                slot_img = image[by:by+bh, bx:bx+bw]
+                qty = TemplateDetector.evaluate_card_ownership(slot_img)
+                if qty > 0:
+                    center_x = bx + bw // 2
+                    center_y = by + bh // 2
+                    for _ in range(qty):
+                        MouseController.click(center_x, center_y)
+                        sleep_random(0.05, 0.01, 0.02, 0.1)
+
+                    card_entry = CardEntry(
+                        name=f"Card_{current_page}_{idx}",
+                        quantity=qty,
+                        unique_id=f"page_{current_page}_slot_{idx}",
+                    )
+                    discovered.append(card_entry)
+
+            MouseController.scroll_down(clicks=5)
+            sleep_random(0.5, 0.1, 0.2, 0.5)
 
         added_count = 0
         for card in discovered:
@@ -207,7 +234,13 @@ class ApplicationController:
                     len(batch_cards),
                 )
                 if not dry_run:
+                    self.save_current_deck()
+                    self.export_and_cleanup_deck()
+                    BrowserController.open_privacy_browser()
+                    tunnel_url = self.transfer_provider.get_url()
+                    BrowserController.navigate_to_url(tunnel_url)
                     self.transfer_provider.transfer(decklist_str)
+                    BrowserController.close_current_tab()
                 self.batch_controller.mark_batch_exported(batch_id)
                 batch["exported_data"] = decklist_str
 
@@ -233,3 +266,85 @@ class ApplicationController:
             self.transfer_provider.stop()
         except Exception as e:
             logger.error(f"Error during application shutdown: {e}")
+
+    def save_current_deck(self) -> None:
+        """Save the current deck, dismissing any 'Too Many Cards' warning popup if present."""
+        logger.info("Saving current deck...")
+        try:
+            MouseController.click(1850, 50)
+            sleep_random(0.5, 0.1, 0.2, 0.8)
+
+            image = ScreenCapture.capture_screen()
+            ok_btn = UIDetector.find_confirmation_ok_button(image)
+            if ok_btn:
+                x, y, w, h = ok_btn
+                MouseController.click(x + w // 2, y + h // 2)
+                sleep_random(0.3, 0.05, 0.1, 0.4)
+            logger.info("Successfully saved current deck.")
+        except Exception as e:
+            logger.error(f"Failed to save current deck: {e}", exc_info=True)
+            raise MTGARegistrarError(f"Failed to save current deck: {e}", details=str(e)) from e
+
+    def export_and_cleanup_deck(self) -> None:
+        """Search 'New Deck', select leftmost deck, export deck, delete deck, and confirm OK."""
+        logger.info("Executing deck export and cleanup workflow...")
+        try:
+            image = ScreenCapture.capture_screen()
+
+            search_bar = UIDetector.find_decks_search_bar(image)
+            if search_bar:
+                x, y, w, h = search_bar
+                MouseController.click(x + w // 2, y + h // 2)
+            else:
+                MouseController.click(1400, 130)
+            sleep_random(0.2, 0.05, 0.1, 0.3)
+
+            KeyboardController.hotkey("ctrl", "a")
+            KeyboardController.type_text("New Deck", interval=0.04)
+            KeyboardController.press_key("enter")
+            sleep_random(0.8, 0.1, 0.3, 1.0)
+
+            image = ScreenCapture.capture_screen()
+
+            left_deck = UIDetector.find_leftmost_deck(image)
+            if left_deck:
+                x, y, w, h = left_deck
+                MouseController.click(x + w // 2, y + h // 2)
+            else:
+                MouseController.click(300, 300)
+            sleep_random(0.8, 0.1, 0.3, 1.0)
+
+            image = ScreenCapture.capture_screen()
+
+            export_btn = UIDetector.find_export_button(image)
+            if export_btn:
+                x, y, w, h = export_btn
+                MouseController.click(x + w // 2, y + h // 2)
+            else:
+                MouseController.click(500, 950)
+            sleep_random(0.8, 0.1, 0.3, 1.0)
+
+            image = ScreenCapture.capture_screen()
+
+            trash_btn = UIDetector.find_trash_can_button(image)
+            if trash_btn:
+                x, y, w, h = trash_btn
+                MouseController.click(x + w // 2, y + h // 2)
+            else:
+                MouseController.click(1650, 150)
+            sleep_random(0.5, 0.1, 0.2, 0.8)
+
+            image = ScreenCapture.capture_screen()
+
+            ok_btn = UIDetector.find_confirmation_ok_button(image)
+            if ok_btn:
+                x, y, w, h = ok_btn
+                MouseController.click(x + w // 2, y + h // 2)
+            else:
+                MouseController.click(1050, 650)
+            sleep_random(0.8, 0.1, 0.3, 1.0)
+
+            logger.info("Successfully completed deck export and cleanup workflow.")
+        except Exception as e:
+            logger.error(f"Deck export and cleanup failed: {e}", exc_info=True)
+            raise MTGARegistrarError(f"Deck export and cleanup failed: {e}", details=str(e)) from e
