@@ -427,7 +427,7 @@ class ApplicationController:
             logger.info(
                 "[SEQ:save_deck] Saving deck and dismissing 'Too Many Cards' popup if present."
             )
-            MouseController.click(*get_click_point("save_deck_button_click"))
+            MouseController.click(*get_click_point("save_deck_button"))
             sleep_random(0.5, 0.1, 0.2, 0.8)
 
             image = ScreenCapture.capture_screen()
@@ -463,7 +463,7 @@ class ApplicationController:
                     x, y, w, h = search_bar
                     MouseController.click(x + w // 2, y + h // 2)
                 else:
-                    MouseController.click(*get_click_point("fallback_search_bar_click"))
+                    MouseController.click(*get_click_point("decks_search_bar"))
                 sleep_random(0.2, 0.05, 0.1, 0.3)
 
                 KeyboardController.hotkey("ctrl", "a")
@@ -478,7 +478,7 @@ class ApplicationController:
                 x, y, w, h = left_deck
                 MouseController.click(x + w // 2, y + h // 2)
             else:
-                MouseController.click(*get_click_point("fallback_leftmost_deck_click"))
+                MouseController.click(*get_click_point("leftmost_deck_slot"))
             sleep_random(0.8, 0.1, 0.3, 1.0)
 
             image = ScreenCapture.capture_screen()
@@ -488,7 +488,7 @@ class ApplicationController:
                 x, y, w, h = export_btn
                 MouseController.click(x + w // 2, y + h // 2)
             else:
-                MouseController.click(*get_click_point("fallback_export_button_click"))
+                MouseController.click(*get_click_point("export_deck_button"))
             sleep_random(0.8, 0.1, 0.3, 1.0)
 
             image = ScreenCapture.capture_screen()
@@ -498,7 +498,7 @@ class ApplicationController:
                 x, y, w, h = trash_btn
                 MouseController.click(x + w // 2, y + h // 2)
             else:
-                MouseController.click(*get_click_point("fallback_trash_can_click"))
+                MouseController.click(*get_click_point("trash_can_button"))
             sleep_random(0.5, 0.1, 0.2, 0.8)
 
             image = ScreenCapture.capture_screen()
@@ -508,7 +508,7 @@ class ApplicationController:
                 x, y, w, h = ok_btn
                 MouseController.click(x + w // 2, y + h // 2)
             else:
-                MouseController.click(*get_click_point("fallback_confirm_ok_click"))
+                MouseController.click(*get_click_point("confirmation_ok_button"))
             sleep_random(0.8, 0.1, 0.3, 1.0)
 
             logger.info("Successfully completed deck export and cleanup workflow.")

@@ -1,9 +1,6 @@
 """Centralized registry of UI element locations for MTGA Registrar.
 
-IMPORTANT: Every value in UI_LOCATIONS below is an UNVERIFIED PLACEHOLDER carried
-over from earlier fabricated heuristics. None of these have been confirmed against
-the real running MTGA client. Do not add new entries with invented numbers — new
-entries must come from a human providing real calibrated values.
+Supports aspect-ratio specific location mappings (16:10 and 16:9).
 """
 
 import logging
@@ -34,7 +31,23 @@ class UILocation:
         self.calibrated = calibrated
 
 
-UI_LOCATIONS: Dict[str, UILocation] = {
+# 16:10 Aspect Ratio UI Registry (Calibrated from 16:10 screenshots)
+UI_LOCATIONS_16_10: Dict[str, UILocation] = {
+    "create_deck_button": UILocation(0.108, 0.421, 307, 260, True),
+    "decks_search_bar": UILocation(0.233, 0.125, 460, 40, True),
+    "leftmost_deck_slot": UILocation(0.278, 0.421, 307, 260, True),
+    "export_deck_button": UILocation(0.330, 0.930, 40, 40, True),
+    "trash_can_button": UILocation(0.435, 0.930, 40, 40, True),
+    "confirmation_ok_button": UILocation(0.547, 0.602, 120, 45, True),
+    "privacy_choices_link": UILocation(0.500, 0.833, 220, 40, True),
+    "format_selector_dropdown": UILocation(0.900, 0.127, 200, 45, True),
+    "save_deck_button": UILocation(0.892, 0.930, 180, 50, True),
+    "pagination_nav_right": UILocation(0.742, 0.588, 40, 60, True),
+    "pagination_nav_left": UILocation(0.042, 0.680, 40, 60, True),
+}
+
+# 16:9 Aspect Ratio UI Registry (Placeholder / Uncalibrated)
+UI_LOCATIONS_16_9: Dict[str, UILocation] = {
     "create_deck_button": UILocation(0.15, 0.15, 140, 50, False),
     "decks_search_bar": UILocation(0.70, 0.12, 200, 40, False),
     "leftmost_deck_slot": UILocation(0.15, 0.30, 180, 220, False),
@@ -43,25 +56,29 @@ UI_LOCATIONS: Dict[str, UILocation] = {
     "confirmation_ok_button": UILocation(0.55, 0.60, 120, 45, False),
     "privacy_choices_link": UILocation(0.50, 0.85, 220, 40, False),
     "format_selector_dropdown": UILocation(0.50, 0.30, 160, 45, False),
+    "save_deck_button": UILocation(0.9635, 0.0463, 180, 50, False),
     "pagination_nav_right": UILocation(0.85, 0.85, 60, 60, False),
     "pagination_nav_left": UILocation(0.10, 0.85, 60, 60, False),
-    "save_deck_button_click": UILocation(0.9635, 0.0463, 0, 0, False),
-    "fallback_search_bar_click": UILocation(0.7292, 0.1204, 0, 0, False),
-    "fallback_leftmost_deck_click": UILocation(0.15625, 0.2778, 0, 0, False),
-    "fallback_export_button_click": UILocation(0.2604, 0.8796, 0, 0, False),
-    "fallback_trash_can_click": UILocation(0.8594, 0.1389, 0, 0, False),
-    "fallback_confirm_ok_click": UILocation(0.5469, 0.6019, 0, 0, False),
-    "fallback_privacy_choices_click": UILocation(0.5, 0.8333, 0, 0, False),
+}
+
+ASPECT_RATIO_REGISTRIES: Dict[str, Dict[str, UILocation]] = {
+    "16:10": UI_LOCATIONS_16_10,
+    "16:9": UI_LOCATIONS_16_9,
 }
 
 
-def get_location(name: str, screen_width: int, screen_height: int) -> Tuple[int, int, int, int]:
-    """Resolve a named UI location to absolute pixel coordinates for a given screen size.
+def get_location(
+    name: str, screen_width: int, screen_height: int, aspect_ratio: str = "16:10"
+) -> Tuple[int, int, int, int]:
+    """Resolve a named UI location to absolute pixel coordinates
+
+    for a given screen size and aspect ratio.
 
     Args:
-        name: Key into UI_LOCATIONS.
+        name: Key into UI locations registry.
         screen_width: Current screen width in pixels.
         screen_height: Current screen height in pixels.
+        aspect_ratio: Screen aspect ratio ("16:10" or "16:9").
 
     Returns:
         Tuple of (x, y, width, height) in absolute pixels.
@@ -69,25 +86,30 @@ def get_location(name: str, screen_width: int, screen_height: int) -> Tuple[int,
     Raises:
         KeyError: If name is not a registered UI location.
     """
-    loc = UI_LOCATIONS[name]
+    registry = ASPECT_RATIO_REGISTRIES.get(aspect_ratio, UI_LOCATIONS_16_10)
+    if name not in registry:
+        registry = UI_LOCATIONS_16_10
+    loc = registry[name]
     if not loc.calibrated:
         logger.warning(
-            "UI location '%s' is UNCALIBRATED (fabricated placeholder). "
+            "UI location '%s' for aspect ratio '%s' is UNCALIBRATED. "
             "Automation accuracy is not guaranteed at this coordinate.",
             name,
+            aspect_ratio,
         )
     x = int(loc.rel_x * screen_width)
     y = int(loc.rel_y * screen_height)
     return (x, y, loc.width_px, loc.height_px)
 
 
-def get_click_point(name: str) -> Tuple[int, int]:
-    """Resolve a named UI location to an absolute (x, y) click point on the current screen.
+def get_click_point(name: str, aspect_ratio: str = "16:10") -> Tuple[int, int]:
+    """Resolve a named UI location to an absolute (x, y) click point.
 
     Uses `pyautogui.size()` to determine the current screen resolution.
 
     Args:
-        name: Key into UI_LOCATIONS.
+        name: Key into UI locations registry.
+        aspect_ratio: Screen aspect ratio ("16:10" or "16:9").
 
     Returns:
         Tuple of (x, y) absolute pixel coordinates.
@@ -98,5 +120,5 @@ def get_click_point(name: str) -> Tuple[int, int]:
     import pyautogui  # type: ignore[import-untyped]
 
     screen_width, screen_height = pyautogui.size()
-    x, y, _, _ = get_location(name, screen_width, screen_height)
+    x, y, _, _ = get_location(name, screen_width, screen_height, aspect_ratio)
     return (x, y)

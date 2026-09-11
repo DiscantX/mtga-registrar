@@ -121,9 +121,7 @@ class BrowserController:
                 x, y = click_coords
                 MouseController.click(x, y)
             else:
-                # Default fallback or click center-ish where
-                # privacy choices link typically appears
-                MouseController.click(*get_click_point("fallback_privacy_choices_click"))
+                MouseController.click(*get_click_point("privacy_choices_link"))
 
             sleep_random(1.0, 0.2, 0.5, 2.0)
             logger.debug("Successfully opened privacy browser.")
@@ -167,4 +165,3 @@ class BrowserController:
             if isinstance(e, AutomationError):
                 raise
             raise AutomationError("Failed to close current browser tab", details=str(e)) from e
-
