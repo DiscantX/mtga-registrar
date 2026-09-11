@@ -17,7 +17,7 @@ from src.vision.ui import UIDetector
 
 def test_screen_capture_success() -> None:
     """Verify screen capture successfully returns a BGR numpy array when mocked."""
-    mock_pil_img = np.zeros((100, 200, 3), dtype=np.uint8)
+    mock_pil_img: np.ndarray = np.zeros((100, 200, 3), dtype=np.uint8)
     from PIL import Image
     img = Image.fromarray(mock_pil_img, mode="RGB")
 
@@ -38,7 +38,7 @@ def test_screen_capture_failure() -> None:
 def test_template_matching_success() -> None:
     """Verify template matching locates a template within a target image correctly."""
     np.random.seed(42)
-    target = np.random.randint(50, 200, (200, 200, 3), dtype=np.uint8)
+    target: np.ndarray = np.random.randint(50, 200, (200, 200, 3), dtype=np.uint8)
     pattern = np.array([[[255, 0, 255], [0, 255, 0]], [[255, 255, 0], [0, 0, 255]]], dtype=np.uint8)
     import cv2
     pattern_resized = cv2.resize(pattern, (20, 20), interpolation=cv2.INTER_NEAREST)
@@ -58,7 +58,7 @@ def test_template_matching_success() -> None:
 
 def test_template_matching_invalid_input() -> None:
     """Verify match_template raises VisionError on invalid inputs."""
-    target = np.zeros((10, 10, 3), dtype=np.uint8)
+    target: np.ndarray = np.zeros((10, 10, 3), dtype=np.uint8)
     empty_template = np.array([], dtype=np.uint8)
 
     with pytest.raises(VisionError):
@@ -67,7 +67,7 @@ def test_template_matching_invalid_input() -> None:
 
 def test_detect_ownership_diamonds_heuristic() -> None:
     """Verify ownership diamond heuristic detection finds bright white shapes."""
-    image = np.zeros((150, 150, 3), dtype=np.uint8)
+    image: np.ndarray = np.zeros((150, 150, 3), dtype=np.uint8)
     image[40:55, 40:55] = 255
 
     diamonds = TemplateDetector.detect_ownership_diamonds(image)
@@ -79,7 +79,7 @@ def test_detect_ownership_diamonds_heuristic() -> None:
 
 def test_ui_detectors() -> None:
     """Verify UI element detectors return valid bounding boxes for buttons and formats."""
-    canvas = np.zeros((600, 800, 3), dtype=np.uint8)
+    canvas: np.ndarray = np.zeros((600, 800, 3), dtype=np.uint8)
 
     nav_right = UIDetector.find_navigation_button(canvas, direction="right")
     assert nav_right is not None

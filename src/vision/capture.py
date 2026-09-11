@@ -39,7 +39,7 @@ class ScreenCapture:
             pil_img: Image.Image = pyautogui.screenshot(region=region)
             # Convert PIL RGB image to OpenCV BGR numpy array
             rgb_array = np.array(pil_img)
-            bgr_array = rgb_array[:, :, ::-1].copy()
+            bgr_array: np.ndarray = rgb_array[:, :, ::-1].copy()
             return bgr_array
         except Exception as e:
             logger.error("Failed to capture screen: %s", e, exc_info=True)
