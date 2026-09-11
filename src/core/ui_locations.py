@@ -49,11 +49,11 @@ UI_LOCATIONS_16_10: Dict[str, UILocation] = {
     "export_deck_button": UILocation(0.330, 0.930, 40, 40, True, "decks_screen"),
     "trash_can_button": UILocation(0.435, 0.930, 40, 40, True, "decks_screen"),
     "confirmation_ok_button": UILocation(0.547, 0.602, 120, 45, True, "decks_screen"),
-    "privacy_choices_link": UILocation(0.500, 0.833, 220, 40, True, "decks_screen"),
-    "format_selector_dropdown": UILocation(0.900, 0.127, 200, 45, True, "decks_screen"),
-    "save_deck_button": UILocation(0.892, 0.930, 180, 50, True, "decks_screen"),
-    "pagination_nav_right": UILocation(0.742, 0.588, 40, 60, True, "decks_screen"),
-    "pagination_nav_left": UILocation(0.042, 0.680, 40, 60, True, "decks_screen"),
+    "privacy_choices_link": UILocation(0.500, 0.833, 220, 40, True, "esc_screen"),
+    "format_selector_dropdown": UILocation(0.900, 0.127, 200, 45, True, "deck_editor_screen"),
+    "save_deck_button": UILocation(0.892, 0.930, 180, 50, True, "deck_editor_screen"),
+    "pagination_nav_right": UILocation(0.742, 0.588, 40, 60, True, "deck_editor_screen"),
+    "pagination_nav_left": UILocation(0.042, 0.680, 40, 60, True, "deck_editor_screen"),
 }
 
 # 16:9 Aspect Ratio UI Registry (Placeholder / Uncalibrated)
@@ -64,11 +64,11 @@ UI_LOCATIONS_16_9: Dict[str, UILocation] = {
     "export_deck_button": UILocation(0.25, 0.90, 120, 40, False, "decks_screen"),
     "trash_can_button": UILocation(0.85, 0.15, 50, 50, False, "decks_screen"),
     "confirmation_ok_button": UILocation(0.55, 0.60, 120, 45, False, "decks_screen"),
-    "privacy_choices_link": UILocation(0.50, 0.85, 220, 40, False, "decks_screen"),
-    "format_selector_dropdown": UILocation(0.50, 0.30, 160, 45, False, "decks_screen"),
-    "save_deck_button": UILocation(0.9635, 0.0463, 180, 50, False, "decks_screen"),
-    "pagination_nav_right": UILocation(0.85, 0.85, 60, 60, False, "decks_screen"),
-    "pagination_nav_left": UILocation(0.10, 0.85, 60, 60, False, "decks_screen"),
+    "privacy_choices_link": UILocation(0.50, 0.85, 220, 40, False, "esc_screen"),
+    "format_selector_dropdown": UILocation(0.50, 0.30, 160, 45, False, "deck_editor_screen"),
+    "save_deck_button": UILocation(0.9635, 0.0463, 180, 50, False, "deck_editor_screen"),
+    "pagination_nav_right": UILocation(0.85, 0.85, 60, 60, False, "deck_editor_screen"),
+    "pagination_nav_left": UILocation(0.10, 0.85, 60, 60, False, "deck_editor_screen"),
 }
 
 ASPECT_RATIO_REGISTRIES: Dict[str, Dict[str, UILocation]] = {

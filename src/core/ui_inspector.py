@@ -35,7 +35,7 @@ class UIInspectorApp:
 
         self.aspect_ratio_var = tk.StringVar(value="16:10")
         self.screen_var = tk.StringVar(value=AVAILABLE_SCREENS[0])
-        self.show_all_var = tk.BooleanVar(value=True)
+        self.show_all_var = tk.BooleanVar(value=False)
 
         self.original_image: Optional[Image.Image] = None
         self.tk_image: Optional[ImageTk.PhotoImage] = None
@@ -179,7 +179,6 @@ class UIInspectorApp:
         image_path = ar_mapping.get(screen, "screens/16-10_deck_screen.png")
 
         if not os.path.exists(image_path):
-            # Fallback
             image_path = "screens/16-10_deck_screen.png"
 
         try:
