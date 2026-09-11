@@ -7,9 +7,11 @@ and execution invocation for the [`ApplicationController`](src/core/app.py).
 import argparse
 import logging
 import sys
+import time
 from typing import Optional
 
 from src.automation.emergency_stop import EmergencyStop
+from src.automation.window_guard import ensure_mtga_focused, try_focus_mtga_window
 from src.core.app import ApplicationController
 from src.core.config import Settings, setup_logging
 from src.core.exceptions import MTGARegistrarError
@@ -88,6 +90,9 @@ def main() -> int:
 
     logger.info("Starting MTGA Registrar CLI...")
     EmergencyStop.start_hotkey_listener()
+    try_focus_mtga_window()
+    time.sleep(1.0)
+    ensure_mtga_focused()
     logger.info(
         "Configuration: dry_run=%s, log_level=%s, max_batch_size=%d, transfer_mode=%s",
         args.dry_run,

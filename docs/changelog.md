@@ -2,6 +2,13 @@
 
 All notable changes to [`MTGA Registrar`](.) will be documented in this file.
 
+## [0.7.0] - 2026-09-11
+
+### Added
+- **MTGA Window Focus Guard (`src/automation/window_guard.py`)**: Implemented robust window detection and focusing (`try_focus_mtga_window`, `ensure_mtga_focused`) using `pygetwindow` to ensure the MTGA game window is active and restored before execution starts.
+- **CLI Window Guard Integration (`main.py`)**: Wired window focus verification and settling pause into the main execution flow right after hotkey listener startup.
+- **Window Guard Tests (`tests/test_window_guard.py`)**: Added comprehensive unit tests covering successful focusing, minimized window restoration, missing window handling, and validation error raising.
+
 ## [0.6.0] - 2026-09-11
 
 ### Added
