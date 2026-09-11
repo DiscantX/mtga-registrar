@@ -52,6 +52,7 @@ def setup_logging(log_level: Optional[str] = None) -> logging.Logger:
 
     logger = logging.getLogger("mtga_registrar")
     logger.setLevel(numeric_level)
+    logger.propagate = False
 
     if not logger.handlers:
         handler = logging.StreamHandler(sys.stdout)
