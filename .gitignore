@@ -1,2 +1,11 @@
 .qdrant_storage/
 .vscode/
+plans/
+.venv/
+mtga_registrar.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+*__pycache__*
+build/
