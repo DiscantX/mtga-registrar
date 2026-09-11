@@ -2,6 +2,17 @@
 
 All notable changes to [`MTGA Registrar`](.) will be documented in this file.
 
+## [0.4.0] - 2026-09-11
+
+### Added
+- **Real-World Execution Lifecycle**: Specified the complete concrete workflow in [`docs/architecture.md`](docs/architecture.md), starting from the Decks screen, creating a deck without format restrictions, and processing batches up to 250 cards.
+- **Aspect-Ratio Relative Grid Geometry**: Documented relative normalized coordinate math for card detection across 16:9 (2x5 and 3x7) and 16:10 (2x4 and 3x6) aspect ratios in List View.
+- **Diamond State & Infinity Recognition**: Documented 4-diamond slot evaluation (white owned vs. grey empty) and the infinity ($\infty$) symbol handling rule (add exactly 1 card).
+- **Mouse Wheel Pagination**: Replaced navigation button dependencies with mouse wheel scroll down automation.
+- **Deck Cleanup Automation**: Added immediate deck deletion (trash can icon -> confirm dialogue) following decklist export on the Decks screen.
+- **Privacy Link Browser Tunneling Lifecycle**: Documented ESC menu navigation to "Your Privacy Choices", address bar focus (`Ctrl+L`), and subsequent tab closure (`Ctrl+W`) to enforce Tunnelmole single-connection constraints.
+- **Architecture Decision Record (ADR 5)**: Added ADR 5 in [`docs/decisions.md`](docs/decisions.md) detailing grid geometry, scroll wheel pagination, deck cleanup, and browser lifecycle.
+
 ## [0.3.0] - 2026-09-11
 
 ### Added
