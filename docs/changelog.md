@@ -2,6 +2,14 @@
 
 All notable changes to [`MTGA Registrar`](.) will be documented in this file.
 
+## [0.6.0] - 2026-09-11
+
+### Added
+- **Resumable Scan Cursor (`src/core/scan_cursor.py`)**: Implemented `ScanCursor` and `PartialCard` tracking exact resume position (page, slot index, and partially clicked cards) across deck-builder sessions.
+- **Copy-Limit-Aware Batch Scanning**: Updated `ApplicationController.scan_and_click_page` and `export_collection` to enforce the 250-copy limit per batch, correctly resuming from partial cards and returning to scrolled collection pages.
+- **One-Time Deck Search Optimization**: Updated `export_and_cleanup_deck` to accept `skip_search` parameter, retaining search filter state across batch export cycles.
+- **Scan Cursor Tests (`tests/test_scan_cursor.py`)**: Added unit tests covering partial card carryover across batches and cursor reset behavior.
+
 ## [0.5.0] - 2026-09-11
 
 ### Added
