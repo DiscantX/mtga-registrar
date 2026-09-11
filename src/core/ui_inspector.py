@@ -1,17 +1,23 @@
 """Standalone UI Inspector application for MTGA Registrar.
 
 Provides a lightweight tkinter GUI to visualize and inspect UI element locations
-defined in [`src/core/ui_locations.py`](src/core/ui_locations.py) overlaid on screen screenshots.
+defined in [`src/core/ui_locations.py`](src/core/ui_locations.py) overlaid on screen screenshots
+by aspect ratio and screen classification.
 """
 
 import os
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import messagebox, ttk
 from typing import Optional
 
 from PIL import Image, ImageTk
 
-from src.core.ui_locations import ASPECT_RATIO_REGISTRIES, get_location
+from src.core.ui_locations import (
+    ASPECT_RATIO_REGISTRIES,
+    AVAILABLE_SCREENS,
+    SCREEN_IMAGE_MAPPING,
+    get_location,
+)
 
 
 class UIInspectorApp:
@@ -28,7 +34,7 @@ class UIInspectorApp:
         self.root.geometry("1200x850")
 
         self.aspect_ratio_var = tk.StringVar(value="16:10")
-        self.image_path_var = tk.StringVar(value="screens/16-10_deck_screen.png")
+        self.screen_var = tk.StringVar(value=AVAILABLE_SCREENS[0])
         self.show_all_var = tk.BooleanVar(value=True)
 
         self.original_image: Optional[Image.Image] = None
@@ -60,37 +66,39 @@ class UIInspectorApp:
         )
         ar_combo.grid(row=0, column=1, padx=5)
         ar_combo.bind(
-            "<<ComboboxSelected>>", lambda e: self.on_aspect_ratio_changed()
+            "<<ComboboxSelected>>", lambda e: self.on_config_changed()
         )
 
-        # Image Path Selector
-        ttk.Label(control_frame, text="Image Path:").grid(
+        # Screen Selector
+        ttk.Label(control_frame, text="Screen:").grid(
             row=0, column=2, sticky=tk.W, padx=5
         )
-        img_entry = ttk.Entry(
-            control_frame, textvariable=self.image_path_var, width=50
+        screen_combo = ttk.Combobox(
+            control_frame,
+            textvariable=self.screen_var,
+            values=AVAILABLE_SCREENS,
+            state="readonly",
+            width=22,
         )
-        img_entry.grid(row=0, column=3, padx=5)
-
-        browse_btn = ttk.Button(
-            control_frame, text="Browse...", command=self.browse_image
+        screen_combo.grid(row=0, column=3, padx=5)
+        screen_combo.bind(
+            "<<ComboboxSelected>>", lambda e: self.on_config_changed()
         )
-        browse_btn.grid(row=0, column=4, padx=5)
 
         reload_btn = ttk.Button(
             control_frame,
             text="Reload & Redraw",
             command=self.load_image_and_redraw,
         )
-        reload_btn.grid(row=0, column=5, padx=5)
+        reload_btn.grid(row=0, column=4, padx=5)
 
         show_all_chk = ttk.Checkbutton(
             control_frame,
-            text="Show All Boxes",
+            text="Show All Screens",
             variable=self.show_all_var,
             command=self.redraw,
         )
-        show_all_chk.grid(row=0, column=6, padx=10)
+        show_all_chk.grid(row=0, column=5, padx=10)
 
         # Main content area
         content_frame = ttk.Frame(self.root, padding=10)
@@ -130,16 +138,18 @@ class UIInspectorApp:
             side=tk.RIGHT, fill=tk.BOTH, expand=False
         )
 
-        columns = ("name", "calibrated", "coords")
+        columns = ("name", "screen", "calibrated", "coords")
         self.tree = ttk.Treeview(
             right_frame, columns=columns, show="headings", height=20
         )
-        self.tree.heading("name", text="Element Name")
+        self.tree.heading("name", text="Element")
+        self.tree.heading("screen", text="Screen")
         self.tree.heading("calibrated", text="Cal.")
         self.tree.heading("coords", text="X, Y, W, H")
-        self.tree.column("name", width=140)
-        self.tree.column("calibrated", width=40, anchor=tk.CENTER)
-        self.tree.column("coords", width=140)
+        self.tree.column("name", width=110)
+        self.tree.column("screen", width=90)
+        self.tree.column("calibrated", width=35, anchor=tk.CENTER)
+        self.tree.column("coords", width=110)
         self.tree.pack(side=tk.TOP, fill=tk.BOTH, expand=True, pady=(0, 5))
 
         self.tree.bind("<<TreeviewSelect>>", self.on_element_select)
@@ -156,33 +166,24 @@ class UIInspectorApp:
         )
         info_label.pack(side=tk.BOTTOM, fill=tk.X, pady=5)
 
-    def browse_image(self) -> None:
-        """Open file dialog to select a screenshot image."""
-        filename = filedialog.askopenfilename(
-            title="Select Screenshot",
-            initialdir="screens",
-            filetypes=[
-                ("Image Files", "*.png *.jpg *.jpeg *.bmp *.webp"),
-                ("All Files", "*.*"),
-            ],
-        )
-        if filename:
-            self.image_path_var.set(filename)
-            self.load_image_and_redraw()
-
-    def on_aspect_ratio_changed(self) -> None:
-        """Handle aspect ratio selection change."""
+    def on_config_changed(self) -> None:
+        """Handle aspect ratio or screen selection change."""
         self.load_image_and_redraw()
 
     def load_image_and_redraw(self) -> None:
-        """Load the image from path and update canvas and element list."""
-        path = self.image_path_var.get()
-        if not os.path.exists(path):
-            messagebox.showerror("Error", f"Image file not found: {path}")
-            return
+        """Load the image for the selected aspect ratio and screen."""
+        aspect_ratio = self.aspect_ratio_var.get()
+        screen = self.screen_var.get()
+
+        ar_mapping = SCREEN_IMAGE_MAPPING.get(aspect_ratio, {})
+        image_path = ar_mapping.get(screen, "screens/16-10_deck_screen.png")
+
+        if not os.path.exists(image_path):
+            # Fallback
+            image_path = "screens/16-10_deck_screen.png"
 
         try:
-            self.original_image = Image.open(path)
+            self.original_image = Image.open(image_path)
             self.image_width, self.image_height = self.original_image.size
             self.tk_image = ImageTk.PhotoImage(self.original_image)
 
@@ -195,21 +196,30 @@ class UIInspectorApp:
             messagebox.showerror("Error", f"Failed to load image: {e}")
 
     def populate_treeview(self) -> None:
-        """Populate the treeview with UI elements for current aspect ratio."""
+        """Populate the treeview with UI elements for aspect ratio & screen."""
         for item in self.tree.get_children():
             self.tree.delete(item)
 
         aspect_ratio = self.aspect_ratio_var.get()
+        current_screen = self.screen_var.get()
+        show_all = self.show_all_var.get()
+
         registry = ASPECT_RATIO_REGISTRIES.get(aspect_ratio, {})
 
         for name, loc in sorted(registry.items()):
+            if not show_all and loc.screen != current_screen:
+                continue
+
             cal_str = "Yes" if loc.calibrated else "No"
             x, y, w, h = get_location(
                 name, self.image_width, self.image_height, aspect_ratio
             )
             coords_str = f"({x}, {y}, {w}, {h})"
             self.tree.insert(
-                "", tk.END, values=(name, cal_str, coords_str), tags=(name,)
+                "",
+                tk.END,
+                values=(name, loc.screen, cal_str, coords_str),
+                tags=(name,),
             )
 
     def redraw(self) -> None:
@@ -221,9 +231,10 @@ class UIInspectorApp:
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.tk_image)
 
         aspect_ratio = self.aspect_ratio_var.get()
+        current_screen = self.screen_var.get()
+        show_all = self.show_all_var.get()
         registry = ASPECT_RATIO_REGISTRIES.get(aspect_ratio, {})
 
-        show_all = self.show_all_var.get()
         selected_items = self.tree.selection()
         selected_names = []
         for item in selected_items:
@@ -232,8 +243,9 @@ class UIInspectorApp:
                 selected_names.append(vals[0])
 
         for name, loc in registry.items():
-            if not show_all and name not in selected_names:
-                continue
+            if not show_all and loc.screen != current_screen:
+                if name not in selected_names:
+                    continue
 
             x, y, w, h = get_location(
                 name, self.image_width, self.image_height, aspect_ratio
