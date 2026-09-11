@@ -5,6 +5,7 @@ All notable changes to [`MTGA Registrar`](.) will be documented in this file.
 ## [0.4.0] - 2026-09-11
 
 ### Added
+- **Relative Locations & Template Audit**: Added [`docs/relative-locations-and-templates.md`](docs/relative-locations-and-templates.md) detailing all fabricated relative coordinates, inter-card margin math, heuristic fallback clicks, template matching analysis, and missing image templates catalog.
 - **Real-World Execution Lifecycle**: Specified the complete concrete workflow in [`docs/architecture.md`](docs/architecture.md), starting from the Decks screen, creating a deck without format restrictions, and processing batches up to 250 cards.
 - **Aspect-Ratio Relative Grid Geometry**: Documented relative normalized coordinate math for card detection across 16:9 (2x5 and 3x7) and 16:10 (2x4 and 3x6) aspect ratios in List View.
 - **Diamond State & Infinity Recognition**: Documented 4-diamond slot evaluation (white owned vs. grey empty) and the infinity ($\infty$) symbol handling rule (add exactly 1 card).
