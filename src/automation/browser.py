@@ -1,0 +1,100 @@
+"""Browser automation and navigation module for GeForce Now.
+
+This module provides `BrowserController` to automate browser navigation (such as navigating
+the GeForce Now in-game Edge browser to the temporary Tunnelmole public URL) using human-like
+keyboard shortcuts, typing delays, and mouse interactions.
+"""
+
+import logging
+from typing import Optional
+
+from src.automation.keyboard import KeyboardController
+from src.automation.mouse import MouseController
+from src.automation.timing import sleep_random
+from src.core.exceptions import AutomationError
+
+logger = logging.getLogger("mtga_registrar")
+
+
+class BrowserController:
+    """Controller for browser navigation and interaction within GeForce Now."""
+
+    @staticmethod
+    def navigate_to_url(url: str, address_bar_coords: Optional[tuple[int, int]] = None) -> None:
+        """Navigate the browser to the specified URL (e.g., https://*.tunnelmole.net).
+
+        Uses keyboard shortcuts (Ctrl+L or Alt+D) to focus the address bar, types the URL
+        with human-like typing delays, and presses Enter. Optionally clicks specific address
+        bar coordinates if provided.
+
+        Args:
+            url: The destination URL string (e.g., Tunnelmole forwarding URL).
+            address_bar_coords: Optional (x, y) coordinates to click the address bar directly.
+
+        Raises:
+            AutomationError: If browser navigation fails.
+        """
+        try:
+            if not isinstance(url, str) or not url.startswith("http"):
+                raise AutomationError(f"Invalid URL provided for navigation: '{url}'")
+
+            logger.info(f"Navigating browser to URL: {url}")
+
+            # Optional click on address bar coordinates if provided
+            if address_bar_coords is not None:
+                x, y = address_bar_coords
+                MouseController.click(x, y)
+                sleep_random(0.1, 0.03, 0.05, 0.2)
+            else:
+                # Use standard browser address bar focus hotkeys (Ctrl+L or Alt+D)
+                KeyboardController.hotkey("ctrl", "l")
+                sleep_random(0.15, 0.03, 0.08, 0.25)
+
+            # Clear existing text in address bar just in case
+            KeyboardController.hotkey("ctrl", "a")
+            sleep_random(0.05, 0.01, 0.02, 0.1)
+
+            # Type the URL with human-like delays
+            KeyboardController.type_text(url, interval=0.04)
+            sleep_random(0.1, 0.03, 0.05, 0.2)
+
+            # Press Enter to navigate
+            KeyboardController.press_key("enter")
+
+            # Allow time for page load / navigation initiation
+            sleep_random(1.0, 0.2, 0.5, 2.0)
+            logger.debug(f"Successfully triggered browser navigation to {url}")
+
+        except Exception as e:
+            logger.error(f"Failed to navigate browser to URL '{url}': {e}")
+            if isinstance(e, AutomationError):
+                raise
+            raise AutomationError(
+                f"Browser navigation failed for URL '{url}'", details=str(e)
+            ) from e
+
+    @staticmethod
+    def open_help_link_or_browser(click_coords: Optional[tuple[int, int]] = None) -> None:
+        """Open the in-game Edge browser or help link in GeForce Now.
+
+        Args:
+            click_coords: Optional (x, y) coordinates of the help/link icon in MTGA or GFN overlay.
+
+        Raises:
+            AutomationError: If opening browser/link fails.
+        """
+        try:
+            if click_coords is not None:
+                x, y = click_coords
+                MouseController.click(x, y)
+            else:
+                # Fallback hotkeys or shortcut (e.g. Win+D or browser shortcut)
+                KeyboardController.hotkey("ctrl", "shift", "o")
+
+            sleep_random(0.5, 0.1, 0.3, 1.0)
+            logger.debug("Successfully triggered open help/browser action.")
+        except Exception as e:
+            logger.error(f"Failed to open browser or help link: {e}")
+            if isinstance(e, AutomationError):
+                raise
+            raise AutomationError("Failed to open browser or help link", details=str(e)) from e
