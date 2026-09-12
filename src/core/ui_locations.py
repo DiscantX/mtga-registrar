@@ -1,7 +1,7 @@
 """Centralized registry of UI element locations for MTGA Registrar.
 
 Supports aspect-ratio specific location mappings (16:10 and 16:9), screen classifications,
-and JSON configuration loading/persistence with fallback defaults.
+and JSON configuration loading/persistence exclusively from config/ui_locations.json.
 """
 
 import json
@@ -46,103 +46,54 @@ class UILocation:
         self.screen = screen
 
 
-# Built-in Default 16:10 Aspect Ratio UI Registry (Calibrated from 16:10 screenshots)
-_BUILTIN_UI_LOCATIONS_16_10: Dict[str, UILocation] = {
-    "create_deck_button": UILocation(0.108, 0.421, 307, 260, True, "decks_screen"),
-    "decks_search_bar": UILocation(0.233, 0.125, 460, 40, True, "decks_screen"),
-    "leftmost_deck_slot": UILocation(0.278, 0.421, 307, 260, True, "decks_screen"),
-    "export_deck_button": UILocation(0.330, 0.930, 40, 40, True, "decks_screen"),
-    "trash_can_button": UILocation(0.435, 0.930, 40, 40, True, "decks_screen"),
-    "confirmation_ok_button": UILocation(0.547, 0.602, 120, 45, True, "decks_screen"),
-    "privacy_choices_link": UILocation(0.500, 0.833, 220, 40, True, "esc_screen"),
-    "format_selector_dropdown": UILocation(0.900, 0.127, 200, 45, True, "deck_editor_screen"),
-    "save_deck_button": UILocation(0.892, 0.930, 180, 50, True, "deck_editor_screen"),
-    "pagination_nav_right": UILocation(0.742, 0.588, 40, 60, True, "deck_editor_screen"),
-    "pagination_nav_left": UILocation(0.042, 0.680, 40, 60, True, "deck_editor_screen"),
-}
-
-# Built-in Default 16:9 Aspect Ratio UI Registry (Placeholder / Uncalibrated)
-_BUILTIN_UI_LOCATIONS_16_9: Dict[str, UILocation] = {
-    "create_deck_button": UILocation(0.15, 0.15, 140, 50, False, "decks_screen"),
-    "decks_search_bar": UILocation(0.70, 0.12, 200, 40, False, "decks_screen"),
-    "leftmost_deck_slot": UILocation(0.15, 0.30, 180, 220, False, "decks_screen"),
-    "export_deck_button": UILocation(0.25, 0.90, 120, 40, False, "decks_screen"),
-    "trash_can_button": UILocation(0.85, 0.15, 50, 50, False, "decks_screen"),
-    "confirmation_ok_button": UILocation(0.55, 0.60, 120, 45, False, "decks_screen"),
-    "privacy_choices_link": UILocation(0.50, 0.85, 220, 40, False, "esc_screen"),
-    "format_selector_dropdown": UILocation(0.50, 0.30, 160, 45, False, "deck_editor_screen"),
-    "save_deck_button": UILocation(0.9635, 0.0463, 180, 50, False, "deck_editor_screen"),
-    "pagination_nav_right": UILocation(0.85, 0.85, 60, 60, False, "deck_editor_screen"),
-    "pagination_nav_left": UILocation(0.10, 0.85, 60, 60, False, "deck_editor_screen"),
-}
-
-
 def load_ui_locations() -> Dict[str, Dict[str, UILocation]]:
-    """Load UI locations from config/ui_locations.json, falling back to built-in defaults.
+    """Load UI locations exclusively from config/ui_locations.json.
 
     Returns:
         Dictionary mapping aspect ratios to dictionaries of UILocation instances.
+
+    Raises:
+        FileNotFoundError: If config/ui_locations.json does not exist.
+        json.JSONDecodeError: If config/ui_locations.json is invalid JSON.
     """
-    registries: Dict[str, Dict[str, UILocation]] = {
-        "16:10": dict(_BUILTIN_UI_LOCATIONS_16_10),
-        "16:9": dict(_BUILTIN_UI_LOCATIONS_16_9),
-    }
-
     if not CONFIG_PATH.exists():
-        logger.info(
-            "UI locations config %s not found. Using and saving default locations.",
-            CONFIG_PATH,
-        )
-        try:
-            save_ui_locations(registries)
-        except Exception as e:
-            logger.warning(
-                "Failed to write default UI locations config to %s: %s",
-                CONFIG_PATH,
-                e,
-            )
-        return registries
-
-    try:
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        aspect_ratios_data = data.get("aspect_ratios", {})
-        for ar, ar_dict in aspect_ratios_data.items():
-            if ar not in registries:
-                registries[ar] = {}
-            for loc_name, loc_data in ar_dict.items():
-                try:
-                    rel_x = float(loc_data.get("rel_x", 0.0))
-                    rel_y = float(loc_data.get("rel_y", 0.0))
-                    width_px = int(loc_data.get("width_px", 0))
-                    height_px = int(loc_data.get("height_px", 0))
-                    calibrated = bool(loc_data.get("calibrated", False))
-                    screen = str(loc_data.get("screen", "decks_screen"))
-                    registries[ar][loc_name] = UILocation(
-                        rel_x=rel_x,
-                        rel_y=rel_y,
-                        width_px=width_px,
-                        height_px=height_px,
-                        calibrated=calibrated,
-                        screen=screen,
-                    )
-                except Exception as entry_err:
-                    logger.warning(
-                        "Error parsing UI location '%s' for aspect ratio '%s': %s. "
-                        "Using default if available.",
-                        loc_name,
-                        ar,
-                        entry_err,
-                    )
-        logger.info("Successfully loaded UI locations from %s", CONFIG_PATH)
-    except Exception as e:
-        logger.error(
-            "Failed to load UI locations from %s: %s. Falling back to built-in defaults.",
-            CONFIG_PATH,
-            e,
+        raise FileNotFoundError(
+            f"UI locations config {CONFIG_PATH} not found. "
+            "config/ui_locations.json is the sole source of truth."
         )
 
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    registries: Dict[str, Dict[str, UILocation]] = {}
+    aspect_ratios_data = data.get("aspect_ratios", {})
+    for ar, ar_dict in aspect_ratios_data.items():
+        if ar not in registries:
+            registries[ar] = {}
+        for loc_name, loc_data in ar_dict.items():
+            try:
+                rel_x = float(loc_data.get("rel_x", 0.0))
+                rel_y = float(loc_data.get("rel_y", 0.0))
+                width_px = int(loc_data.get("width_px", 0))
+                height_px = int(loc_data.get("height_px", 0))
+                calibrated = bool(loc_data.get("calibrated", False))
+                screen = str(loc_data.get("screen", "decks_screen"))
+                registries[ar][loc_name] = UILocation(
+                    rel_x=rel_x,
+                    rel_y=rel_y,
+                    width_px=width_px,
+                    height_px=height_px,
+                    calibrated=calibrated,
+                    screen=screen,
+                )
+            except Exception as entry_err:
+                logger.warning(
+                    "Error parsing UI location '%s' for aspect ratio '%s': %s.",
+                    loc_name,
+                    ar,
+                    entry_err,
+                )
+    logger.info("Successfully loaded UI locations from %s", CONFIG_PATH)
     return registries
 
 
@@ -183,15 +134,8 @@ def save_ui_locations(
     logger.info("Saved UI locations to %s", CONFIG_PATH)
 
 
-# Initialize aspect ratio registries from configuration (with fallback defaults)
+# Initialize aspect ratio registries exclusively from configuration
 ASPECT_RATIO_REGISTRIES: Dict[str, Dict[str, UILocation]] = load_ui_locations()
-
-UI_LOCATIONS_16_10: Dict[str, UILocation] = ASPECT_RATIO_REGISTRIES.get(
-    "16:10", _BUILTIN_UI_LOCATIONS_16_10
-)
-UI_LOCATIONS_16_9: Dict[str, UILocation] = ASPECT_RATIO_REGISTRIES.get(
-    "16:9", _BUILTIN_UI_LOCATIONS_16_9
-)
 
 AVAILABLE_SCREENS: List[str] = [
     "decks_screen",
@@ -229,9 +173,11 @@ def get_location(
     Raises:
         KeyError: If name is not a registered UI location.
     """
-    registry = ASPECT_RATIO_REGISTRIES.get(aspect_ratio, UI_LOCATIONS_16_10)
+    registry = ASPECT_RATIO_REGISTRIES.get(aspect_ratio)
+    if not registry:
+        registry = ASPECT_RATIO_REGISTRIES.get("16:10", {})
     if name not in registry:
-        registry = UI_LOCATIONS_16_10
+        registry = ASPECT_RATIO_REGISTRIES.get("16:10", {})
     loc = registry[name]
     if not loc.calibrated:
         logger.warning(
