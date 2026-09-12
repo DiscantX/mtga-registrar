@@ -3,149 +3,181 @@
   "aspect_ratios": {
     "16:10": {
       "create_deck_button": {
-        "rel_x": 0.027976190476190477,
-        "rel_y": 0.31333333333333335,
-        "rel_width": 0.1380208333333333,
-        "rel_height": 0.19166666666666668,
+        "rel_x": 0.025,
+        "rel_y": 0.30666666666666664,
+        "rel_width": 0.15357142857142858,
+        "rel_height": 0.21142857142857144,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "decks_search_bar": {
         "rel_x": 0.3202380952380952,
-        "rel_y": 0.0980952380952381,
-        "rel_width": 0.09010416666666667,
-        "rel_height": 0.03166666666666667,
+        "rel_y": 0.09714285714285714,
+        "rel_width": 0.10238095238095238,
+        "rel_height": 0.04,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "leftmost_deck_slot": {
-        "rel_x": 0.1988095238095238,
-        "rel_y": 0.31142857142857144,
-        "rel_width": 0.13593750,
-        "rel_height": 0.19333333333333333,
+        "rel_x": 0.20357142857142857,
+        "rel_y": 0.3171428571428571,
+        "rel_width": 0.15535714285714286,
+        "rel_height": 0.17238095238095238,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "export_deck_button": {
-        "rel_x": 0.35535714285714287,
-        "rel_y": 0.9019047619047619,
-        "rel_width": 0.033854166666666664,
-        "rel_height": 0.05083333333333333,
+        "rel_x": 0.35892857142857143,
+        "rel_y": 0.9047619047619048,
+        "rel_width": 0.03333333333333333,
+        "rel_height": 0.05047619047619047,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "trash_can_button": {
-        "rel_x": 0.4738095238095238,
-        "rel_y": 0.8980952380952381,
-        "rel_width": 0.034895833333333334,
-        "rel_height": 0.05833333333333333,
+        "rel_x": 0.47619047619047616,
+        "rel_y": 0.9,
+        "rel_width": 0.034523809523809526,
+        "rel_height": 0.058095238095238096,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "confirmation_ok_button": {
-        "rel_x": 0.5113095238095238,
+        "rel_x": 0.5119047619047619,
         "rel_y": 0.6028571428571429,
-        "rel_width": 0.1375,
-        "rel_height": 0.0475,
+        "rel_width": 0.15833333333333333,
+        "rel_height": 0.05523809523809524,
         "calibrated": true,
         "screen": "deck_editor_screen_confirmation"
       },
       "privacy_choices_link": {
-        "rel_x": 0.5672619047619047,
-        "rel_y": 0.7790476190476191,
-        "rel_width": 0.10520833333333333,
-        "rel_height": 0.016666666666666666,
+        "rel_x": 0.5678571428571428,
+        "rel_y": 0.7780952380952381,
+        "rel_width": 0.11785714285714285,
+        "rel_height": 0.02095238095238095,
         "calibrated": true,
         "screen": "esc_menu"
       },
       "format_selector_dropdown": {
         "rel_x": 0.8089285714285714,
         "rel_y": 0.10761904761904761,
-        "rel_width": 0.1625,
-        "rel_height": 0.03666666666666667,
+        "rel_width": 0.1880952380952381,
+        "rel_height": 0.0419047619047619,
         "calibrated": true,
         "screen": "deck_editor_screen_2"
       },
       "save_deck_button": {
-        "rel_x": 0.892,
-        "rel_y": 0.93,
-        "rel_width": 0.09375,
-        "rel_height": 0.041666666666666664,
+        "rel_x": 0.8172619047619047,
+        "rel_y": 0.9066666666666666,
+        "rel_width": 0.15416666666666667,
+        "rel_height": 0.05047619047619047,
+        "calibrated": true,
+        "screen": "deck_editor_screen_2"
+      },
+      "playmat": {
+        "rel_x": 0.275,
+        "rel_y": 0.20095238095238097,
+        "rel_width": 0.7035714285714286,
+        "rel_height": 0.7876190476190477,
+        "calibrated": true,
+        "screen": "deck_editor_screen_2"
+      },
+      "example_card": {
+        "rel_x": 0.030952380952380953,
+        "rel_y": 0.20857142857142857,
+        "rel_width": 0.15654761904761905,
+        "rel_height": 0.3485714285714286,
         "calibrated": true,
         "screen": "deck_editor_screen_2"
       }
     },
     "16:9": {
       "create_deck_button": {
-        "rel_x": 0.028125,
-        "rel_y": 0.30666666666666664,
-        "rel_width": 0.115625,
-        "rel_height": 0.18611111111111112,
+        "rel_x": 0.03,
+        "rel_y": 0.31,
+        "rel_width": 0.1375,
+        "rel_height": 0.22444444444444445,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "decks_search_bar": {
         "rel_x": 0.285625,
-        "rel_y": 0.1,
-        "rel_width": 0.08125,
-        "rel_height": 0.03333333333333333,
+        "rel_y": 0.09777777777777778,
+        "rel_width": 0.094375,
+        "rel_height": 0.03666666666666667,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "leftmost_deck_slot": {
-        "rel_x": 0.175,
-        "rel_y": 0.3055555555555556,
-        "rel_width": 0.121875,
-        "rel_height": 0.18703703703703703,
+        "rel_x": 0.175625,
+        "rel_y": 0.30333333333333334,
+        "rel_width": 0.141875,
+        "rel_height": 0.18777777777777777,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "export_deck_button": {
-        "rel_x": 0.32,
+        "rel_x": 0.32125,
         "rel_y": 0.9066666666666666,
-        "rel_width": 0.028125,
-        "rel_height": 0.04351851851851852,
+        "rel_width": 0.031875,
+        "rel_height": 0.052222222222222225,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "trash_can_button": {
         "rel_x": 0.4275,
-        "rel_y": 0.9011111111111111,
-        "rel_width": 0.029166666666666667,
-        "rel_height": 0.05092592592592592,
+        "rel_y": 0.9,
+        "rel_width": 0.033125,
+        "rel_height": 0.06555555555555556,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "confirmation_ok_button": {
         "rel_x": 0.511875,
         "rel_y": 0.6033333333333334,
-        "rel_width": 0.11666666666666667,
-        "rel_height": 0.04537037037037037,
+        "rel_width": 0.14,
+        "rel_height": 0.05444444444444444,
         "calibrated": true,
         "screen": "deck_editor_screen_confirmation"
       },
       "privacy_choices_link": {
-        "rel_x": 0.561875,
+        "rel_x": 0.5625,
         "rel_y": 0.7755555555555556,
-        "rel_width": 0.0875,
-        "rel_height": 0.022222222222222223,
+        "rel_width": 0.104375,
+        "rel_height": 0.027777777777777776,
         "calibrated": true,
         "screen": "esc_menu"
       },
       "format_selector_dropdown": {
-        "rel_x": 0.5,
-        "rel_y": 0.3,
-        "rel_width": 0.08333333333333333,
-        "rel_height": 0.041666666666666664,
-        "calibrated": false,
+        "rel_x": 0.81375,
+        "rel_y": 0.09888888888888889,
+        "rel_width": 0.18875,
+        "rel_height": 0.058888888888888886,
+        "calibrated": true,
         "screen": "deck_editor_screen_2"
       },
       "save_deck_button": {
-        "rel_x": 0.9635,
-        "rel_y": 0.0463,
-        "rel_width": 0.09375,
-        "rel_height": 0.046296296296296294,
-        "calibrated": false,
+        "rel_x": 0.831875,
+        "rel_y": 0.9055555555555556,
+        "rel_width": 0.140625,
+        "rel_height": 0.051111111111111114,
+        "calibrated": true,
+        "screen": "deck_editor_screen_2"
+      },
+      "playmat": {
+        "rel_x": 0.0225,
+        "rel_y": 0.18,
+        "rel_width": 0.72875,
+        "rel_height": 0.7711111111111111,
+        "calibrated": true,
+        "screen": "deck_editor_screen_2"
+      },
+      "example_card": {
+        "rel_x": 0.024375,
+        "rel_y": 0.22555555555555556,
+        "rel_width": 0.135,
+        "rel_height": 0.3377777777777778,
+        "calibrated": true,
         "screen": "deck_editor_screen_2"
       }
     }
