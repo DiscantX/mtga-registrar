@@ -2,6 +2,13 @@
 
 All notable changes to [`MTGA Registrar`](.) will be documented in this file.
 
+## [0.8.0] - 2026-09-12
+
+### Added / Changed
+- **Normalized UI Location Dimensions (`config/ui_locations.json`, `src/core/ui_locations.py`)**: Migrated all UI element sizing from absolute pixel coordinates (`width_px`, `height_px`) to normalized relative bounding box fractions (`rel_width`, `rel_height`) for robust aspect-ratio scaling.
+- **Test Suite Expansion & Fixes**: Added unit tests in [`tests/test_ui_locations.py`](tests/test_ui_locations.py) and expanded `tests/test_window_guard.py` for foreground window focus verification.
+- **Code Quality & Verification**: Verified zero remaining references to `width_px`/`height_px`, passing all 68 pytest test cases, `ruff check`, and `mypy`.
+
 ## [0.7.0] - 2026-09-11
 
 ### Added

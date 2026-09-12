@@ -39,16 +39,51 @@ def test_try_focus_mtga_window_not_found(mock_get_windows: MagicMock) -> None:
     assert try_focus_mtga_window() is False
 
 
-@patch("src.automation.window_guard.try_focus_mtga_window")
-def test_ensure_mtga_focused_success(mock_try_focus: MagicMock) -> None:
+@patch("src.automation.window_guard.get_focused_window_title")
+def test_ensure_mtga_focused_success(mock_get_title: MagicMock) -> None:
     """Verify ensure_mtga_focused does not raise when focus succeeds."""
-    mock_try_focus.return_value = True
+    mock_get_title.return_value = "Magic The Gathering: Arena"
     ensure_mtga_focused()  # Should not raise
 
 
-@patch("src.automation.window_guard.try_focus_mtga_window")
-def test_ensure_mtga_focused_raises(mock_try_focus: MagicMock) -> None:
+@patch("src.automation.window_guard.get_focused_window_title")
+def test_ensure_mtga_focused_raises(mock_get_title: MagicMock) -> None:
     """Verify ensure_mtga_focused raises AutomationError when focus fails."""
-    mock_try_focus.return_value = False
+    mock_get_title.return_value = "Other Window"
+    with pytest.raises(AutomationError):
+        ensure_mtga_focused()
+
+@patch("pygetwindow.getActiveWindow")
+def test_ensure_mtga_focused_passes_when_active_window_matches(
+    mock_get_active: MagicMock,
+) -> None:
+    """Verify ensure_mtga_focused does not raise when MTGA is the foreground window."""
+    mock_win = MagicMock()
+    mock_win.title = "Magic The Gathering: Arena"
+    mock_get_active.return_value = mock_win
+
+    ensure_mtga_focused()  # Should not raise
+
+
+@patch("pygetwindow.getActiveWindow")
+def test_ensure_mtga_focused_raises_when_active_window_does_not_match(
+    mock_get_active: MagicMock,
+) -> None:
+    """Verify ensure_mtga_focused raises when a different window is focused."""
+    mock_win = MagicMock()
+    mock_win.title = "Visual Studio Code"
+    mock_get_active.return_value = mock_win
+
+    with pytest.raises(AutomationError):
+        ensure_mtga_focused()
+
+
+@patch("pygetwindow.getActiveWindow")
+def test_ensure_mtga_focused_raises_when_no_active_window(
+    mock_get_active: MagicMock,
+) -> None:
+    """Verify ensure_mtga_focused raises when the active window cannot be determined."""
+    mock_get_active.return_value = None
+
     with pytest.raises(AutomationError):
         ensure_mtga_focused()

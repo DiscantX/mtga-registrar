@@ -81,13 +81,6 @@ def test_ui_detectors() -> None:
     """Verify UI element detectors return valid bounding boxes for buttons and formats."""
     canvas: np.ndarray = np.zeros((600, 800, 3), dtype=np.uint8)
 
-    nav_right = UIDetector.find_navigation_button(canvas, direction="right")
-    assert nav_right is not None
-    assert len(nav_right) == 4
-
-    nav_left = UIDetector.find_navigation_button(canvas, direction="left")
-    assert nav_left is not None
-
     export_btn = UIDetector.find_export_button(canvas)
     assert export_btn is not None
     assert len(export_btn) == 4

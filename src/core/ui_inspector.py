@@ -493,8 +493,8 @@ class UIInspectorApp:
         elif self.dragging_mode == "resize":
             new_w = max(5, self.orig_w + int(dx))
             new_h = max(5, self.orig_h + int(dy))
-            loc.width_px = new_w
-            loc.height_px = new_h
+            loc.rel_width = new_w / self.image_width if self.image_width > 0 else 0.0
+            loc.rel_height = new_h / self.image_height if self.image_height > 0 else 0.0
             self.edit_w_var.set(new_w)
             self.edit_h_var.set(new_h)
 
@@ -523,6 +523,8 @@ class UIInspectorApp:
 
             rel_x = x / self.image_width if self.image_width > 0 else 0.0
             rel_y = y / self.image_height if self.image_height > 0 else 0.0
+            rel_w = w / self.image_width if self.image_width > 0 else 0.0
+            rel_h = h / self.image_height if self.image_height > 0 else 0.0
             aspect_ratio = self.aspect_ratio_var.get()
 
             update_location(
@@ -530,8 +532,8 @@ class UIInspectorApp:
                 aspect_ratio=aspect_ratio,
                 rel_x=rel_x,
                 rel_y=rel_y,
-                width_px=w,
-                height_px=h,
+                rel_width=rel_w,
+                rel_height=rel_h,
                 calibrated=cal,
             )
             self.populate_treeview()
@@ -557,8 +559,8 @@ class UIInspectorApp:
                 aspect_ratio=aspect_ratio,
                 rel_x=loc.rel_x,
                 rel_y=loc.rel_y,
-                width_px=loc.width_px,
-                height_px=loc.height_px,
+                rel_width=loc.rel_width,
+                rel_height=loc.rel_height,
                 calibrated=loc.calibrated,
             )
             self.populate_treeview()

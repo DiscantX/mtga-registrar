@@ -80,16 +80,13 @@ In [`src/core/app.py`](src/core/app.py) & [`src/automation/browser.py`](src/auto
 
 ### 2.2 Catalog of Required Templates
 
+> **Update:** UI buttons/links (create-deck, export, trash, confirm-OK, search bar,
+> privacy-choices link, list-view toggle) are now resolved from calibrated positions
+> in `config/ui_locations.json` and no longer use template matching. Only the
+> ownership diamond and infinity indicators below still require template images.
+
 | Reference Image Name | Description / Target UI Element | Purpose | Associated Function |
 | :--- | :--- | :--- | :--- |
-| `btn_create_deck.png` | `+` (Create Deck) button on Decks screen | Navigates from home screen to Deck Builder | [`UIDetector.find_deck_creation_button()`](src/vision/ui.py:106) |
-| `btn_done.png` | "Done" / Save Deck button | Saves deck and exits builder | [`ApplicationController.save_current_deck()`](src/core/app.py:270) |
-| `btn_export.png` | "Export" / "Export Deck" button | Copies decklist to GFN clipboard | [`UIDetector.find_export_button()`](src/vision/ui.py:70) |
-| `btn_trash.png` | Trash can / Delete icon | Deletes temporary batch deck | [`UIDetector.find_trash_can_button()`](src/vision/ui.py:259) |
-| `btn_confirm_ok.png` | "OK" confirmation button | Dismisses dialogs and confirms deletion | [`UIDetector.find_confirmation_ok_button()`](src/vision/ui.py:295) |
-| `input_search_bar.png` | Decks search bar / Search icon | Focuses search box for `"New Deck"` | [`UIDetector.find_decks_search_bar()`](src/vision/ui.py:187) |
-| `link_privacy_choices.png` | "Your Privacy Choices" link text | Launches Edge browser in ESC menu | [`UIDetector.find_privacy_choices_link()`](src/vision/ui.py:331) |
 | `diamond_white.png` | White diamond pip (owned copy) | Validates owned card copy ($1-4$) | [`TemplateDetector.detect_ownership_diamonds()`](src/vision/detector.py:112) |
 | `diamond_grey.png` | Grey diamond pip (unowned copy) | Distinguishes unowned slot | [`TemplateDetector.evaluate_card_ownership()`](src/vision/detector.py:276) |
 | `symbol_infinity.png` | Infinity ($\infty$) symbol | Handles basic land infinite quantity ($X=1$) | [`TemplateDetector.evaluate_card_ownership()`](src/vision/detector.py:276) |
-| `btn_list_view.png` | List View toggle icon | Ensures deck builder is in List View | UI Verification |

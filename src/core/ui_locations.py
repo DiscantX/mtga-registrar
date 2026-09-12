@@ -2,6 +2,9 @@
 
 Supports aspect-ratio specific location mappings (16:10 and 16:9), screen classifications,
 and JSON configuration loading/persistence exclusively from config/ui_locations.json.
+
+All position AND size values are stored as fractions (0.0-1.0) of screen width/height,
+so a single calibration works across every resolution that shares an aspect ratio.
 """
 
 import json
@@ -15,15 +18,15 @@ CONFIG_PATH = Path("config/ui_locations.json")
 
 
 class UILocation:
-    """A single named UI element location, expressed relative to screen size.
+    """A single named UI element location, expressed entirely as fractions of screen size.
 
     Attributes:
         rel_x: Fraction (0.0-1.0) of screen width for the element's x position.
         rel_y: Fraction (0.0-1.0) of screen height for the element's y position.
-        width_px: Fixed pixel width of the element's bounding box (0 if this
-            location is a single click point rather than a box).
-        height_px: Fixed pixel height of the element's bounding box (0 if this
-            location is a single click point rather than a box).
+        rel_width: Fraction (0.0-1.0) of screen width for the element's bounding
+            box width (0.0 if this location is a single click point rather than a box).
+        rel_height: Fraction (0.0-1.0) of screen height for the element's bounding
+            box height (0.0 if this location is a single click point rather than a box).
         calibrated: True only once a human has confirmed this value against the
             real MTGA client. Must default to False for placeholder values.
         screen: Name of the screen where this UI element resides (e.g., "decks_screen").
@@ -33,15 +36,15 @@ class UILocation:
         self,
         rel_x: float,
         rel_y: float,
-        width_px: int,
-        height_px: int,
+        rel_width: float,
+        rel_height: float,
         calibrated: bool,
         screen: str = "decks_screen",
     ) -> None:
         self.rel_x = rel_x
         self.rel_y = rel_y
-        self.width_px = width_px
-        self.height_px = height_px
+        self.rel_width = rel_width
+        self.rel_height = rel_height
         self.calibrated = calibrated
         self.screen = screen
 
@@ -74,15 +77,15 @@ def load_ui_locations() -> Dict[str, Dict[str, UILocation]]:
             try:
                 rel_x = float(loc_data.get("rel_x", 0.0))
                 rel_y = float(loc_data.get("rel_y", 0.0))
-                width_px = int(loc_data.get("width_px", 0))
-                height_px = int(loc_data.get("height_px", 0))
+                rel_width = float(loc_data.get("rel_width", 0.0))
+                rel_height = float(loc_data.get("rel_height", 0.0))
                 calibrated = bool(loc_data.get("calibrated", False))
                 screen = str(loc_data.get("screen", "decks_screen"))
                 registries[ar][loc_name] = UILocation(
                     rel_x=rel_x,
                     rel_y=rel_y,
-                    width_px=width_px,
-                    height_px=height_px,
+                    rel_width=rel_width,
+                    rel_height=rel_height,
                     calibrated=calibrated,
                     screen=screen,
                 )
@@ -122,8 +125,8 @@ def save_ui_locations(
             ar_data[loc_name] = {
                 "rel_x": loc.rel_x,
                 "rel_y": loc.rel_y,
-                "width_px": loc.width_px,
-                "height_px": loc.height_px,
+                "rel_width": loc.rel_width,
+                "rel_height": loc.rel_height,
                 "calibrated": loc.calibrated,
                 "screen": loc.screen,
             }
@@ -139,8 +142,8 @@ def update_location(
     aspect_ratio: str,
     rel_x: float,
     rel_y: float,
-    width_px: int,
-    height_px: int,
+    rel_width: float,
+    rel_height: float,
     calibrated: bool = True,
 ) -> None:
     """Update or create a UI location and save to config/ui_locations.json.
@@ -150,8 +153,8 @@ def update_location(
         aspect_ratio: Aspect ratio key (e.g. "16:10" or "16:9").
         rel_x: Relative X coordinate (0.0 - 1.0).
         rel_y: Relative Y coordinate (0.0 - 1.0).
-        width_px: Width in pixels.
-        height_px: Height in pixels.
+        rel_width: Relative width (0.0 - 1.0) as a fraction of screen width.
+        rel_height: Relative height (0.0 - 1.0) as a fraction of screen height.
         calibrated: Calibration status flag.
     """
     if aspect_ratio not in ASPECT_RATIO_REGISTRIES:
@@ -161,15 +164,15 @@ def update_location(
         loc = ASPECT_RATIO_REGISTRIES[aspect_ratio][name]
         loc.rel_x = max(0.0, min(1.0, rel_x))
         loc.rel_y = max(0.0, min(1.0, rel_y))
-        loc.width_px = max(0, width_px)
-        loc.height_px = max(0, height_px)
+        loc.rel_width = max(0.0, min(1.0, rel_width))
+        loc.rel_height = max(0.0, min(1.0, rel_height))
         loc.calibrated = calibrated
     else:
         ASPECT_RATIO_REGISTRIES[aspect_ratio][name] = UILocation(
             rel_x=max(0.0, min(1.0, rel_x)),
             rel_y=max(0.0, min(1.0, rel_y)),
-            width_px=max(0, width_px),
-            height_px=max(0, height_px),
+            rel_width=max(0.0, min(1.0, rel_width)),
+            rel_height=max(0.0, min(1.0, rel_height)),
             calibrated=calibrated,
             screen="decks_screen",
         )
@@ -203,6 +206,25 @@ SCREEN_IMAGE_MAPPING: Dict[str, Dict[str, str]] = {
         "esc_menu": "screens/16-9_esc_menu.png",
     },
 }
+
+
+def detect_aspect_ratio(screen_width: int, screen_height: int) -> str:
+    """Classify a screen resolution as '16:9' or '16:10'.
+
+    Uses the same 1.7 threshold as `TemplateDetector.calculate_card_grid`, so
+    both modules agree on which bucket a given resolution falls into.
+
+    Args:
+        screen_width: Screen width in pixels.
+        screen_height: Screen height in pixels.
+
+    Returns:
+        "16:9" if width/height >= 1.7, otherwise "16:10".
+    """
+    if screen_height <= 0:
+        return "16:10"
+    ratio = screen_width / screen_height
+    return "16:9" if ratio >= 1.7 else "16:10"
 
 
 def get_location(
@@ -239,20 +261,28 @@ def get_location(
         )
     x = int(loc.rel_x * screen_width)
     y = int(loc.rel_y * screen_height)
-    return (x, y, loc.width_px, loc.height_px)
+    w = int(loc.rel_width * screen_width)
+    h = int(loc.rel_height * screen_height)
+    return (x, y, w, h)
 
 
-def get_click_point(name: str, aspect_ratio: str = "16:10") -> Tuple[int, int]:
-    """Resolve a named UI location to an absolute (x, y) click point.
+def get_click_point(name: str, aspect_ratio: Optional[str] = None) -> Tuple[int, int]:
+    """Resolve a named UI location to an absolute (x, y) click point at its center.
 
-    Uses `pyautogui.size()` to determine the current screen resolution.
+    Uses `pyautogui.size()` to determine the current screen resolution. If
+    `aspect_ratio` is not supplied, it is auto-detected from that resolution
+    via `detect_aspect_ratio` rather than silently defaulting to "16:10" —
+    this was previously a bug where every caller landed in the 16:10 bucket
+    regardless of actual screen shape.
 
     Args:
         name: Key into UI locations registry.
-        aspect_ratio: Screen aspect ratio ("16:10" or "16:9").
+        aspect_ratio: Optional explicit override ("16:10" or "16:9"). If
+            None, auto-detected from the current screen resolution.
 
     Returns:
-        Tuple of (x, y) absolute pixel coordinates.
+        Tuple of (x, y) absolute pixel coordinates at the CENTER of the
+        element's bounding box (not its top-left corner).
 
     Raises:
         KeyError: If name is not a registered UI location.
@@ -260,5 +290,10 @@ def get_click_point(name: str, aspect_ratio: str = "16:10") -> Tuple[int, int]:
     import pyautogui  # type: ignore[import-untyped]
 
     screen_width, screen_height = pyautogui.size()
-    x, y, _, _ = get_location(name, screen_width, screen_height, aspect_ratio)
-    return (x, y)
+    resolved_ratio = aspect_ratio or detect_aspect_ratio(screen_width, screen_height)
+    logger.debug(
+        "get_click_point('%s'): screen=%dx%d, resolved_aspect_ratio=%s",
+        name, screen_width, screen_height, resolved_ratio,
+    )
+    x, y, w, h = get_location(name, screen_width, screen_height, resolved_ratio)
+    return (x + w // 2, y + h // 2)

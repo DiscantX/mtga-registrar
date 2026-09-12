@@ -1,7 +1,13 @@
 """UI element detection module for MTGA Registrar.
 
-Provides detection for game navigation buttons (arrows), export options,
+Provides detection for game navigation buttons, export options,
 deck creation buttons, and format selectors (e.g., Timeless).
+
+All UI element positions are resolved from `src/core/ui_locations.py`'s
+calibrated registry. Template matching is not used for any of these
+elements — only the card ownership diamond and infinity indicators in
+`src/vision/detector.py` use template matching, since those require actual
+visual identification rather than a fixed screen position.
 """
 
 import logging
@@ -11,62 +17,14 @@ import numpy as np
 
 from src.core.config import settings
 from src.core.exceptions import VisionError
-from src.core.ui_locations import get_location
+from src.core.ui_locations import detect_aspect_ratio, get_location
 from src.vision.detector import TemplateDetector
-from src.vision.templates import TemplateLibrary
 
 logger = logging.getLogger("mtga_registrar.vision.ui")
 
 
 class UIDetector:
     """Detects interactive UI elements in the MTGA application interface."""
-
-    @staticmethod
-    def find_navigation_button(
-        image: np.ndarray,
-        direction: str = "right",
-        template: Optional[np.ndarray] = None,
-        threshold: Optional[float] = None,
-    ) -> Optional[Tuple[int, int, int, int]]:
-        """Find navigation arrow buttons (left or right) for pagination.
-
-        Args:
-            image: BGR numpy array of the screen or navigation area.
-            direction: Direction of navigation button ("left" or "right").
-            template: Optional template image for the button.
-            threshold: Optional confidence threshold.
-
-        Returns:
-            Bounding box tuple (x, y, width, height) if found, else None.
-        """
-        thresh = threshold or settings.confidence_threshold
-        try:
-            if template is not None:
-                matches = TemplateDetector.match_template(
-                    image, template, threshold=thresh
-                )
-                if matches:
-                    best = max(matches, key=lambda m: m[4])
-                    return (best[0], best[1], best[2], best[3])
-
-            logger.debug(
-                "No template for navigation button '%s', using heuristic",
-                direction
-            )
-            h, w = image.shape[:2]
-            if direction == "right":
-                return get_location("pagination_nav_right", w, h)
-            else:
-                return get_location("pagination_nav_left", w, h)
-
-        except Exception as e:
-            logger.error(
-                "Failed to find navigation button '%s': %s",
-                direction, e, exc_info=True
-            )
-            raise VisionError(
-                f"Navigation button detection failed: {e}", details=str(e)
-            ) from e
 
     @staticmethod
     def find_export_button(
@@ -86,7 +44,6 @@ class UIDetector:
         """
         thresh = threshold or settings.confidence_threshold
         try:
-            template = template or TemplateLibrary.load("btn_export.png")
             if template is not None:
                 matches = TemplateDetector.match_template(
                     image, template, threshold=thresh
@@ -97,7 +54,8 @@ class UIDetector:
 
             logger.debug("No template for export button, using heuristic")
             h, w = image.shape[:2]
-            return get_location("export_deck_button", w, h)
+            aspect_ratio = detect_aspect_ratio(w, h)
+            return get_location("export_deck_button", w, h, aspect_ratio)
 
         except Exception as e:
             logger.error("Failed to find export button: %s", e, exc_info=True)
@@ -123,7 +81,6 @@ class UIDetector:
         """
         thresh = threshold or settings.confidence_threshold
         try:
-            template = template or TemplateLibrary.load("btn_create_deck.png")
             if template is not None:
                 matches = TemplateDetector.match_template(
                     image, template, threshold=thresh
@@ -134,7 +91,8 @@ class UIDetector:
 
             logger.debug("No template for deck creation button, heuristic")
             h, w = image.shape[:2]
-            return get_location("create_deck_button", w, h)
+            aspect_ratio = detect_aspect_ratio(w, h)
+            return get_location("create_deck_button", w, h, aspect_ratio)
 
         except Exception as e:
             logger.error(
@@ -176,7 +134,8 @@ class UIDetector:
                 "No template for format '%s', using heuristic", format_name
             )
             h, w = image.shape[:2]
-            return get_location("format_selector_dropdown", w, h)
+            aspect_ratio = detect_aspect_ratio(w, h)
+            return get_location("format_selector_dropdown", w, h, aspect_ratio)
 
         except Exception as e:
             logger.error(
@@ -205,7 +164,6 @@ class UIDetector:
         """
         thresh = threshold or settings.confidence_threshold
         try:
-            template = template or TemplateLibrary.load("input_search_bar.png")
             if template is not None:
                 matches = TemplateDetector.match_template(
                     image, template, threshold=thresh
@@ -216,7 +174,8 @@ class UIDetector:
 
             logger.debug("No template for decks search bar, using heuristic")
             h, w = image.shape[:2]
-            return get_location("decks_search_bar", w, h)
+            aspect_ratio = detect_aspect_ratio(w, h)
+            return get_location("decks_search_bar", w, h, aspect_ratio)
 
         except Exception as e:
             logger.error("Failed to find decks search bar: %s", e, exc_info=True)
@@ -252,7 +211,8 @@ class UIDetector:
 
             logger.debug("No template for leftmost deck, using heuristic")
             h, w = image.shape[:2]
-            return get_location("leftmost_deck_slot", w, h)
+            aspect_ratio = detect_aspect_ratio(w, h)
+            return get_location("leftmost_deck_slot", w, h, aspect_ratio)
 
         except Exception as e:
             logger.error("Failed to find leftmost deck: %s", e, exc_info=True)
@@ -278,7 +238,6 @@ class UIDetector:
         """
         thresh = threshold or settings.confidence_threshold
         try:
-            template = template or TemplateLibrary.load("btn_trash.png")
             if template is not None:
                 matches = TemplateDetector.match_template(
                     image, template, threshold=thresh
@@ -289,7 +248,8 @@ class UIDetector:
 
             logger.debug("No template for trash can button, using heuristic")
             h, w = image.shape[:2]
-            return get_location("trash_can_button", w, h)
+            aspect_ratio = detect_aspect_ratio(w, h)
+            return get_location("trash_can_button", w, h, aspect_ratio)
 
         except Exception as e:
             logger.error("Failed to find trash can button: %s", e, exc_info=True)
@@ -315,7 +275,6 @@ class UIDetector:
         """
         thresh = threshold or settings.confidence_threshold
         try:
-            template = template or TemplateLibrary.load("btn_confirm_ok.png")
             if template is not None:
                 matches = TemplateDetector.match_template(
                     image, template, threshold=thresh
@@ -326,7 +285,8 @@ class UIDetector:
 
             logger.debug("No template for confirmation OK button, using heuristic")
             h, w = image.shape[:2]
-            return get_location("confirmation_ok_button", w, h)
+            aspect_ratio = detect_aspect_ratio(w, h)
+            return get_location("confirmation_ok_button", w, h, aspect_ratio)
 
         except Exception as e:
             logger.error("Failed to find confirmation OK button: %s", e, exc_info=True)
@@ -352,7 +312,6 @@ class UIDetector:
         """
         thresh = threshold or settings.confidence_threshold
         try:
-            template = template or TemplateLibrary.load("link_privacy_choices.png")
             if template is not None:
                 matches = TemplateDetector.match_template(
                     image, template, threshold=thresh
@@ -363,7 +322,8 @@ class UIDetector:
 
             logger.debug("No template for privacy choices link, using heuristic")
             h, w = image.shape[:2]
-            return get_location("privacy_choices_link", w, h)
+            aspect_ratio = detect_aspect_ratio(w, h)
+            return get_location("privacy_choices_link", w, h, aspect_ratio)
 
         except Exception as e:
             logger.error("Failed to find privacy choices link: %s", e, exc_info=True)

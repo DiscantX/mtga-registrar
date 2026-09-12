@@ -352,7 +352,7 @@ def test_browser_controller_privacy_and_tab_operations() -> None:
         mock_click.assert_called_with(100, 100)
 
         BrowserController.open_privacy_browser()
-        mock_click.assert_called_with(960, 899)
+        mock_click.assert_called_with(1162, 849)
 
         BrowserController.navigate_and_transfer("https://test.tunnelmole.net")
         mock_hotkey.assert_any_call("ctrl", "l")

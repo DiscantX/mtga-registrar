@@ -5,6 +5,7 @@ before automation begins.
 """
 
 import logging
+from typing import Optional
 
 from src.core.exceptions import AutomationError
 
@@ -45,18 +46,39 @@ def try_focus_mtga_window(title_hint: str = window_title_substring) -> bool:
         logger.warning("Failed to focus MTGA window via pygetwindow: %s", e)
         return False
 
+def get_focused_window_title() -> Optional[str]:
+    """Get the title of the currently focused (active) window.
+
+    Returns:
+        The active window's title string, or None if it cannot be determined.
+    """
+    try:
+        import pygetwindow as gw  # type: ignore[import-untyped]
+
+        active = gw.getActiveWindow()
+        return active.title if active is not None else None
+    except Exception as e:
+        logger.warning("Failed to read the focused window title: %s", e)
+        return None
 
 def ensure_mtga_focused(title_hint: str = window_title_substring) -> None:
-    """Ensure the MTGA window is focused, raising AutomationError if focus fails.
+    """Verify the MTGA window is the currently focused (foreground) window.
+
+    This does NOT attempt to focus the window itself — call
+    `try_focus_mtga_window()` first if that's needed. This function only
+    checks whether focus actually landed on MTGA afterward.
 
     Args:
         title_hint: Substring or title to match window against.
 
     Raises:
-        AutomationError: If the MTGA window cannot be found or focused.
+        AutomationError: If the currently focused window's title does not
+            contain `title_hint`.
     """
-    if not try_focus_mtga_window(title_hint):
+    title = get_focused_window_title()
+    if title is None or title_hint not in title:
         raise AutomationError(
-            f"Could not find or focus MTGA window (title hint: '{title_hint}'). "
-            "Please ensure MTGA is running and visible."
+            "MTGA Arena window is not focused; refusing to run automation.",
+            details=f"Focused window title: {title!r}",
         )
+    logger.info("Confirmed MTGA window is focused: '%s'", title)
