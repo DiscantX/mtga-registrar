@@ -134,22 +134,73 @@ def save_ui_locations(
     logger.info("Saved UI locations to %s", CONFIG_PATH)
 
 
+def update_location(
+    name: str,
+    aspect_ratio: str,
+    rel_x: float,
+    rel_y: float,
+    width_px: int,
+    height_px: int,
+    calibrated: bool = True,
+) -> None:
+    """Update or create a UI location and save to config/ui_locations.json.
+
+    Args:
+        name: Name of the UI element.
+        aspect_ratio: Aspect ratio key (e.g. "16:10" or "16:9").
+        rel_x: Relative X coordinate (0.0 - 1.0).
+        rel_y: Relative Y coordinate (0.0 - 1.0).
+        width_px: Width in pixels.
+        height_px: Height in pixels.
+        calibrated: Calibration status flag.
+    """
+    if aspect_ratio not in ASPECT_RATIO_REGISTRIES:
+        ASPECT_RATIO_REGISTRIES[aspect_ratio] = {}
+
+    if name in ASPECT_RATIO_REGISTRIES[aspect_ratio]:
+        loc = ASPECT_RATIO_REGISTRIES[aspect_ratio][name]
+        loc.rel_x = max(0.0, min(1.0, rel_x))
+        loc.rel_y = max(0.0, min(1.0, rel_y))
+        loc.width_px = max(0, width_px)
+        loc.height_px = max(0, height_px)
+        loc.calibrated = calibrated
+    else:
+        ASPECT_RATIO_REGISTRIES[aspect_ratio][name] = UILocation(
+            rel_x=max(0.0, min(1.0, rel_x)),
+            rel_y=max(0.0, min(1.0, rel_y)),
+            width_px=max(0, width_px),
+            height_px=max(0, height_px),
+            calibrated=calibrated,
+            screen="decks_screen",
+        )
+    save_ui_locations()
+
+
 # Initialize aspect ratio registries exclusively from configuration
 ASPECT_RATIO_REGISTRIES: Dict[str, Dict[str, UILocation]] = load_ui_locations()
 
 AVAILABLE_SCREENS: List[str] = [
     "decks_screen",
-    "deck_editor_screen",
+    "deck_editor_screen_2",
+    "deck_editor_screen_3",
+    "deck_editor_screen_confirmation",
+    "esc_menu"
 ]
 
 SCREEN_IMAGE_MAPPING: Dict[str, Dict[str, str]] = {
     "16:10": {
         "decks_screen": "screens/16-10_deck_screen.png",
-        "deck_editor_screen": "screens/16-10_deck_editor_screen_zoom_2.png",
+        "deck_editor_screen_2": "screens/16-10_deck_editor_screen_zoom_2.png",
+        "deck_editor_screen_3": "screens/16-10_deck_editor_screen_zoom_3.png",
+        "deck_editor_screen_confirmation": "screens/16-10_deck_editor_screen_confirmation.png",
+        "esc_menu": "screens/16-10_esc_menu.png",
     },
     "16:9": {
-        "decks_screen": "screens/16-10_deck_screen.png",
-        "deck_editor_screen": "screens/16-10_deck_editor_screen_zoom_2.png",
+        "decks_screen": "screens/16-9_deck_screen.png",
+        "deck_editor_screen_2": "screens/16-9_deck_editor_screen_zoom_2.png",
+        "deck_editor_screen_3": "screens/16-9_deck_editor_screen_zoom_3.png",
+        "deck_editor_screen_confirmation": "screens/16-9_deck_editor_screen_confirmation.png",
+        "esc_menu": "screens/16-9_esc_menu.png",
     },
 }
 

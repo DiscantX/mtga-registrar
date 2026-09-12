@@ -3,88 +3,88 @@
   "aspect_ratios": {
     "16:10": {
       "create_deck_button": {
-        "rel_x": 0.108,
-        "rel_y": 0.421,
-        "width_px": 307,
-        "height_px": 260,
+        "rel_x": 0.027976190476190477,
+        "rel_y": 0.31333333333333335,
+        "width_px": 265,
+        "height_px": 230,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "decks_search_bar": {
-        "rel_x": 0.233,
-        "rel_y": 0.125,
-        "width_px": 460,
-        "height_px": 40,
+        "rel_x": 0.3202380952380952,
+        "rel_y": 0.0980952380952381,
+        "width_px": 173,
+        "height_px": 38,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "leftmost_deck_slot": {
-        "rel_x": 0.278,
-        "rel_y": 0.421,
-        "width_px": 307,
-        "height_px": 260,
+        "rel_x": 0.1988095238095238,
+        "rel_y": 0.31142857142857144,
+        "width_px": 261,
+        "height_px": 232,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "export_deck_button": {
-        "rel_x": 0.330,
-        "rel_y": 0.930,
-        "width_px": 40,
-        "height_px": 40,
+        "rel_x": 0.35535714285714287,
+        "rel_y": 0.9019047619047619,
+        "width_px": 65,
+        "height_px": 61,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "trash_can_button": {
-        "rel_x": 0.435,
-        "rel_y": 0.930,
-        "width_px": 40,
-        "height_px": 40,
+        "rel_x": 0.4738095238095238,
+        "rel_y": 0.8980952380952381,
+        "width_px": 67,
+        "height_px": 70,
         "calibrated": true,
         "screen": "decks_screen"
       },
       "confirmation_ok_button": {
-        "rel_x": 0.547,
-        "rel_y": 0.602,
-        "width_px": 120,
-        "height_px": 45,
+        "rel_x": 0.5113095238095238,
+        "rel_y": 0.6028571428571429,
+        "width_px": 264,
+        "height_px": 57,
         "calibrated": true,
-        "screen": "decks_screen"
+        "screen": "deck_editor_screen_confirmation"
       },
       "privacy_choices_link": {
-        "rel_x": 0.500,
-        "rel_y": 0.833,
-        "width_px": 220,
-        "height_px": 40,
+        "rel_x": 0.5672619047619047,
+        "rel_y": 0.7790476190476191,
+        "width_px": 202,
+        "height_px": 20,
         "calibrated": true,
-        "screen": "esc_screen"
+        "screen": "esc_menu"
       },
       "format_selector_dropdown": {
-        "rel_x": 0.900,
-        "rel_y": 0.127,
-        "width_px": 200,
-        "height_px": 45,
+        "rel_x": 0.8089285714285714,
+        "rel_y": 0.10761904761904761,
+        "width_px": 312,
+        "height_px": 44,
         "calibrated": true,
         "screen": "deck_editor_screen"
       },
       "save_deck_button": {
         "rel_x": 0.892,
-        "rel_y": 0.930,
+        "rel_y": 0.93,
         "width_px": 180,
         "height_px": 50,
         "calibrated": true,
         "screen": "deck_editor_screen"
       },
       "pagination_nav_right": {
-        "rel_x": 0.742,
-        "rel_y": 0.588,
+        "rel_x": 0.7297619047619047,
+        "rel_y": 0.5619047619047619,
         "width_px": 40,
         "height_px": 60,
         "calibrated": true,
         "screen": "deck_editor_screen"
       },
       "pagination_nav_left": {
-        "rel_x": 0.042,
-        "rel_y": 0.680,
+        "rel_x": 0.004166666666666667,
+        "rel_y": 0.5504761904761905,
         "width_px": 40,
         "height_px": 60,
         "calibrated": true,
@@ -93,64 +93,64 @@
     },
     "16:9": {
       "create_deck_button": {
-        "rel_x": 0.15,
-        "rel_y": 0.15,
-        "width_px": 140,
-        "height_px": 50,
-        "calibrated": false,
+        "rel_x": 0.028125,
+        "rel_y": 0.30666666666666664,
+        "width_px": 222,
+        "height_px": 201,
+        "calibrated": true,
         "screen": "decks_screen"
       },
       "decks_search_bar": {
-        "rel_x": 0.70,
-        "rel_y": 0.12,
-        "width_px": 200,
-        "height_px": 40,
-        "calibrated": false,
+        "rel_x": 0.285625,
+        "rel_y": 0.1,
+        "width_px": 156,
+        "height_px": 36,
+        "calibrated": true,
         "screen": "decks_screen"
       },
       "leftmost_deck_slot": {
-        "rel_x": 0.15,
-        "rel_y": 0.30,
-        "width_px": 180,
-        "height_px": 220,
-        "calibrated": false,
+        "rel_x": 0.175,
+        "rel_y": 0.3055555555555556,
+        "width_px": 234,
+        "height_px": 202,
+        "calibrated": true,
         "screen": "decks_screen"
       },
       "export_deck_button": {
-        "rel_x": 0.25,
-        "rel_y": 0.90,
-        "width_px": 120,
-        "height_px": 40,
-        "calibrated": false,
+        "rel_x": 0.32,
+        "rel_y": 0.9066666666666666,
+        "width_px": 54,
+        "height_px": 47,
+        "calibrated": true,
         "screen": "decks_screen"
       },
       "trash_can_button": {
-        "rel_x": 0.85,
-        "rel_y": 0.15,
-        "width_px": 50,
-        "height_px": 50,
-        "calibrated": false,
+        "rel_x": 0.4275,
+        "rel_y": 0.9011111111111111,
+        "width_px": 56,
+        "height_px": 55,
+        "calibrated": true,
         "screen": "decks_screen"
       },
       "confirmation_ok_button": {
-        "rel_x": 0.55,
-        "rel_y": 0.60,
-        "width_px": 120,
-        "height_px": 45,
-        "calibrated": false,
-        "screen": "decks_screen"
+        "rel_x": 0.511875,
+        "rel_y": 0.6033333333333334,
+        "width_px": 224,
+        "height_px": 49,
+        "calibrated": true,
+        "screen": "deck_editor_screen_confirmation"
       },
       "privacy_choices_link": {
-        "rel_x": 0.50,
-        "rel_y": 0.85,
-        "width_px": 220,
-        "height_px": 40,
-        "calibrated": false,
-        "screen": "esc_screen"
+        "rel_x": 0.561875,
+        "rel_y": 0.7755555555555556,
+        "width_px": 168,
+        "height_px": 24,
+        "calibrated": true,
+        "screen": "esc_menu"
       },
       "format_selector_dropdown": {
-        "rel_x": 0.50,
-        "rel_y": 0.30,
+        "rel_x": 0.5,
+        "rel_y": 0.3,
         "width_px": 160,
         "height_px": 45,
         "calibrated": false,
@@ -173,7 +173,7 @@
         "screen": "deck_editor_screen"
       },
       "pagination_nav_left": {
-        "rel_x": 0.10,
+        "rel_x": 0.1,
         "rel_y": 0.85,
         "width_px": 60,
         "height_px": 60,
