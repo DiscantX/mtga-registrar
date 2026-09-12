@@ -10,7 +10,7 @@ from typing import Optional
 from src.core.exceptions import AutomationError
 
 logger = logging.getLogger("mtga_registrar.automation.window_guard")
-window_title_substring = "Magic The Gathering: Arena"
+window_title_substring = "Magic the Gathering: Arena"
 
 
 def try_focus_mtga_window(title_hint: str = window_title_substring) -> bool:
@@ -76,7 +76,7 @@ def ensure_mtga_focused(title_hint: str = window_title_substring) -> None:
             contain `title_hint`.
     """
     title = get_focused_window_title()
-    if title is None or title_hint not in title:
+    if title is None or title_hint.lower() not in title.lower():
         raise AutomationError(
             "MTGA Arena window is not focused; refusing to run automation.",
             details=f"Focused window title: {title!r}",
