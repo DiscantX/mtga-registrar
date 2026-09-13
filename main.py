@@ -5,6 +5,7 @@ and execution invocation for the [`ApplicationController`](src/core/app.py).
 """
 
 import argparse
+import ctypes
 import logging
 import sys
 import time
@@ -80,6 +81,20 @@ def main() -> int:
     Returns:
         Exit code (0 for success, 1 for error).
     """
+    if sys.platform == "win32":
+        try:
+            # Fixes pyautogui screenshot/click coordinate mismatches that occur
+            # when Windows display (DPI) scaling is set above 100%. This MUST
+            # run before any screen capture or mouse automation call. Prefer
+            # per-monitor DPI awareness (Windows 8.1+); fall back to the older
+            # whole-process API if shcore is unavailable.
+            ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        except Exception:
+            try:
+                ctypes.windll.user32.SetProcessDPIAware()
+            except Exception:
+                pass
+
     args = parse_arguments()
 
     settings = Settings(
@@ -93,6 +108,32 @@ def main() -> int:
     try_focus_mtga_window()
     time.sleep(1.0)
     ensure_mtga_focused()
+
+    try:
+        import pyautogui  # type: ignore[import-untyped]
+
+        from src.vision.capture import ScreenCapture
+
+        screen_w, screen_h = pyautogui.size()
+        shot = ScreenCapture.capture_screen()
+        shot_h, shot_w = shot.shape[:2]
+        logger.info(
+            "Startup diagnostic: pyautogui.size()=%dx%d, screenshot capture "
+            "shape=%dx%d (these MUST match exactly, or clicks will land at "
+            "the wrong pixel; a mismatch usually indicates unfixed DPI "
+            "scaling or GeForce Now not running in true exclusive "
+            "fullscreen).",
+            screen_w, screen_h, shot_w, shot_h,
+        )
+        if (screen_w, screen_h) != (shot_w, shot_h):
+            logger.warning(
+                "MISMATCH DETECTED between pyautogui.size() and screenshot "
+                "capture dimensions. Automation click coordinates will "
+                "likely be wrong."
+            )
+    except Exception as diag_err:
+        logger.warning("Startup diagnostic check failed to run: %s", diag_err)
+
     logger.info(
         "Configuration: dry_run=%s, log_level=%s, max_batch_size=%d, transfer_mode=%s",
         args.dry_run,

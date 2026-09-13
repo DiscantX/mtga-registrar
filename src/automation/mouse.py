@@ -4,6 +4,7 @@ This module provides non-linear mouse path generation and movement controllers
 to simulate natural hand movements when interacting with the MTGA client.
 """
 
+import logging
 import math
 import random
 import time
@@ -13,6 +14,8 @@ import pyautogui
 
 from src.automation.timing import sleep_random
 from src.core.exceptions import AutomationError
+
+logger = logging.getLogger("mtga_registrar.automation.mouse")
 
 # Ensure PyAutoGUI failsafe is enabled or configured safely
 pyautogui.FAILSAFE = True
@@ -107,6 +110,12 @@ class MouseController:
 
             # Final snap to exact target
             pyautogui.moveTo(x, y)
+            actual_x, actual_y = pyautogui.position()
+            logger.debug(
+                "MouseController.move_to target=(%d, %d) actual reported "
+                "position=(%d, %d)",
+                x, y, actual_x, actual_y,
+            )
         except Exception as e:
             raise AutomationError(
                 f"Failed to move mouse to ({x}, {y})", details=str(e)
@@ -128,6 +137,10 @@ class MouseController:
         Raises:
             AutomationError: If click operation fails.
         """
+        logger.debug(
+            "MouseController.click invoked with target=(%s, %s), button=%s",
+            x, y, button,
+        )
         try:
             if x is not None and y is not None:
                 MouseController.move_to(x, y)

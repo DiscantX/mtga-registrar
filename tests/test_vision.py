@@ -121,6 +121,42 @@ def test_calculate_card_grid_16_10() -> None:
     assert len(grid_zoom3) == 18
 
 
+def test_calculate_card_grid_16_10_calibrated_values() -> None:
+    """Verify zoom-level-2 slot coordinates match calibrated JSON values exactly."""
+    image_shape = (1200, 1920, 3)  # 16:10
+    grid = TemplateDetector.calculate_card_grid(image_shape, zoom_level=2)
+    expected = [
+        (528, 241, 300, 418),
+        (878, 241, 300, 418),
+        (1228, 241, 300, 418),
+        (1578, 241, 300, 418),
+        (528, 768, 300, 418),
+        (878, 768, 300, 418),
+        (1228, 768, 300, 418),
+        (1578, 768, 300, 418),
+    ]
+    assert grid == expected
+
+
+def test_calculate_card_grid_16_9_calibrated_values() -> None:
+    """Verify zoom-level-2 slot coordinates match calibrated JSON values exactly."""
+    image_shape = (1080, 1920, 3)  # 16:9
+    grid = TemplateDetector.calculate_card_grid(image_shape, zoom_level=2)
+    expected = [
+        (43, 194, 259, 364),
+        (328, 194, 259, 364),
+        (613, 194, 259, 364),
+        (898, 194, 259, 364),
+        (1183, 194, 259, 364),
+        (43, 662, 259, 364),
+        (328, 662, 259, 364),
+        (613, 662, 259, 364),
+        (898, 662, 259, 364),
+        (1183, 662, 259, 364),
+    ]
+    assert grid == expected
+
+
 def test_calculate_card_grid_invalid_shape() -> None:
     """Verify calculate_card_grid raises VisionError on invalid or empty image shapes."""
     with pytest.raises(VisionError):

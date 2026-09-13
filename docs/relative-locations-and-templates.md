@@ -8,11 +8,16 @@ This document provides a comprehensive inventory of all fabricated/heuristic loc
 
 ### 1.1 Card Grid Viewport & Inter-Card Margins
 In [`TemplateDetector.calculate_card_grid()`](src/vision/detector.py:185) ([`src/vision/detector.py`](src/vision/detector.py)):
-- **Fabricated Outer Viewport Margins:**
+- **Fabricated Outer Viewport Margins (zoom_level == 3 only):**
   - `left_margin = int(w * 0.08)` ([`src/vision/detector.py:238`](src/vision/detector.py:238))
   - `right_margin = int(w * 0.08)` ([`src/vision/detector.py:239`](src/vision/detector.py:239))
   - `top_margin = int(h * 0.22)` ([`src/vision/detector.py:240`](src/vision/detector.py:240))
   - `bottom_margin = int(h * 0.15)` ([`src/vision/detector.py:241`](src/vision/detector.py:241))
+  - **Update (Phase 16):** zoom_level == 2 (the default view) no longer uses
+    these fabricated margins. It now derives slot geometry from the
+    calibrated `playmat`/`example_card` entries in
+    `config/ui_locations.json`. Only zoom_level == 3 (uncalibrated) still
+    uses the fabricated margins above.
 - **Confirmed Grid Divisions (Correct):**
   - **16:9 aspect ratio:** `2 rows × 5 cols` (zoom level 2) / `3 rows × 7 cols` (zoom level 3) ([`src/vision/detector.py:227`](src/vision/detector.py:227))
   - **16:10 aspect ratio:** `2 rows × 4 cols` (zoom level 2) / `3 rows × 6 cols` (zoom level 3) ([`src/vision/detector.py:233`](src/vision/detector.py:233))

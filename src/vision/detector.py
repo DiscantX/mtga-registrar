@@ -12,6 +12,7 @@ import numpy as np
 
 from src.core.config import settings
 from src.core.exceptions import VisionError
+from src.core.ui_locations import get_location
 
 logger = logging.getLogger("mtga_registrar.vision.detector")
 
@@ -196,6 +197,15 @@ class TemplateDetector:
           - zoom_level == 2 (standard): 2 rows × 4 columns = 8 slots.
           - zoom_level == 3 (zoomed out): 3 rows × 6 columns = 18 slots.
 
+        For zoom_level == 2, slot geometry is derived from the hand-calibrated
+        "playmat" (outer grid viewport) and "example_card" (single card slot
+        size) entries in config/ui_locations.json, rather than fabricated
+        percentage margins.
+
+        For zoom_level == 3, no calibration data exists yet, so the original
+        fabricated percentage-margin math is retained unchanged until a
+        "deck_editor_screen_3" playmat/example_card calibration is added.
+
         Args:
             image_shape: (height, width) tuple of the screen or viewport image.
             zoom_level: Collection view zoom level (default 2).
@@ -222,41 +232,72 @@ class TemplateDetector:
 
             # Determine grid dimensions based on aspect ratio and zoom level
             if aspect_ratio >= 1.7:
-                # 16:9 aspect ratio
+                ar_key = "16:9"
                 if zoom_level == 3:
                     rows, cols = 3, 7
                 else:
                     rows, cols = 2, 5
             else:
-                # 16:10 aspect ratio
+                ar_key = "16:10"
                 if zoom_level == 3:
                     rows, cols = 3, 6
                 else:
                     rows, cols = 2, 4
 
-            # Define percentage-based collection viewable area margins
-            left_margin = int(w * 0.08)
-            right_margin = int(w * 0.08)
-            top_margin = int(h * 0.22)
-            bottom_margin = int(h * 0.15)
-
-            available_width = w - left_margin - right_margin
-            available_height = h - top_margin - bottom_margin
-
-            if available_width <= 0 or available_height <= 0:
-                raise VisionError("Calculated available grid area is non-positive.")
-
-            col_width = available_width / cols
-            row_height = available_height / rows
-
             grid_boxes: List[Tuple[int, int, int, int]] = []
-            for r in range(rows):
-                for c in range(cols):
-                    slot_x = left_margin + int(c * col_width)
-                    slot_y = top_margin + int(r * row_height)
-                    slot_w = int(col_width)
-                    slot_h = int(row_height)
-                    grid_boxes.append((slot_x, slot_y, slot_w, slot_h))
+
+            if zoom_level == 3:
+                # UNCALIBRATED: zoom level 3 has no "playmat"/"example_card"
+                # reference for a 3-row view yet, so this fabricated
+                # percentage-margin math is retained until that calibration
+                # is captured. Do not treat these numbers as trustworthy.
+                left_margin = int(w * 0.08)
+                right_margin = int(w * 0.08)
+                top_margin = int(h * 0.22)
+                bottom_margin = int(h * 0.15)
+
+                available_width = w - left_margin - right_margin
+                available_height = h - top_margin - bottom_margin
+
+                if available_width <= 0 or available_height <= 0:
+                    raise VisionError(
+                        "Calculated available grid area is non-positive."
+                    )
+
+                col_width = available_width / cols
+                row_height = available_height / rows
+
+                for r in range(rows):
+                    for c in range(cols):
+                        slot_x = left_margin + int(c * col_width)
+                        slot_y = top_margin + int(r * row_height)
+                        slot_w = int(col_width)
+                        slot_h = int(row_height)
+                        grid_boxes.append((slot_x, slot_y, slot_w, slot_h))
+            else:
+                # Calibrated zoom level 2 grid, using playmat (outer bounds)
+                # and example_card (slot width/height) from ui_locations.json.
+                pm_x, pm_y, pm_w, pm_h = get_location("playmat", w, h, ar_key)
+                _, _, card_w, card_h = get_location(
+                    "example_card", w, h, ar_key
+                )
+
+                if cols <= 1 or rows <= 1:
+                    raise VisionError(
+                        "Calibrated grid math requires at least 2 rows and "
+                        "2 columns."
+                    )
+
+                h_margin = (pm_w - card_w * cols) / (cols - 1)
+                v_margin = (pm_h - card_h * rows) / (rows - 1)
+                step_x = card_w + h_margin
+                step_y = card_h + v_margin
+
+                for r in range(rows):
+                    for c in range(cols):
+                        slot_x = int(pm_x + c * step_x)
+                        slot_y = int(pm_y + r * step_y)
+                        grid_boxes.append((slot_x, slot_y, card_w, card_h))
 
             logger.debug(
                 "Calculated %d card slots for ar=%.3f (zoom=%d): %dx%d grid",

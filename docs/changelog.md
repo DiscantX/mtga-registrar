@@ -2,6 +2,17 @@
 
 All notable changes to [`MTGA Registrar`](.) will be documented in this file.
 
+## [0.9.0] - 2026-09-12
+
+### Fixed
+- **Windows DPI Scaling Mouse/Screenshot Mismatch (`main.py`)**: Added `SetProcessDpiAwareness`/`SetProcessDPIAware` call at application startup to fix a known `pyautogui` bug where display scaling above 100% causes screen capture and mouse click coordinate spaces to disagree, producing systematically mis-clicked automation targets.
+- **Calibrated Card Grid Geometry (`src/vision/detector.py`)**: Replaced fabricated percentage-based margins in `calculate_card_grid` with calibrated math for zoom_level 2, derived from the hand-calibrated `playmat` and `example_card` entries in `config/ui_locations.json`. Zoom_level 3 remains on the old fabricated margins pending its own calibration.
+
+### Added
+- **Startup Diagnostic Logging (`main.py`)**: Logs `pyautogui.size()` vs. screenshot capture dimensions at startup and warns on mismatch, to help diagnose window/DPI/fullscreen issues.
+- **Click Target Logging (`src/core/ui_locations.py`, `src/automation/mouse.py`)**: Added logging of resolved click targets (`get_click_point`), intended click coordinates (`MouseController.click`), and actual reported cursor position after every mouse move (`MouseController.move_to`).
+- **Card Grid Calibration Regression Tests (`tests/test_vision.py`)**: Added exact-value regression tests for the new calibrated zoom_level 2 grid geometry.
+
 ## [0.8.0] - 2026-09-12
 
 ### Added / Changed

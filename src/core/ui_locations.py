@@ -296,4 +296,11 @@ def get_click_point(name: str, aspect_ratio: Optional[str] = None) -> Tuple[int,
         name, screen_width, screen_height, resolved_ratio,
     )
     x, y, w, h = get_location(name, screen_width, screen_height, resolved_ratio)
-    return (x + w // 2, y + h // 2)
+    center_x, center_y = x + w // 2, y + h // 2
+    logger.info(
+        "Click target '%s' resolved to absolute point (%d, %d) "
+        "[box=(%d,%d,%d,%d), screen=%dx%d, aspect_ratio=%s]",
+        name, center_x, center_y, x, y, w, h, screen_width, screen_height,
+        resolved_ratio,
+    )
+    return (center_x, center_y)
